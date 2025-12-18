@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Project Ship
 
-## Getting Started
+Project Ship is a simple public web app that shows a feed of recent GitHub commits across a fixed allowlist of `enzo-prism/*` repositories.
 
-First, run the development server:
+## Tech
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS + shadcn/ui
+- GitHub REST API (server-side) using `GITHUB_TOKEN`
+- No database, no auth
+
+## Setup
+
+Requirements:
+- Node.js 20+
+- npm
+
+Install deps:
+```bash
+npm install
+```
+
+Create `.env.local`:
+```bash
+GITHUB_TOKEN=ghp_your_token_here
+```
+
+Notes:
+- `.env*` is gitignored.
+- The token is only used server-side in `src/app/api/commits/route.ts`.
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build + start:
+```bash
+npm run build
+npm run start
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`GET /api/commits`
 
-## Learn More
+Query params:
+- `repo=all` (default) or `repo=enzo-prism/<repo>` (must be in the allowlist)
+- Either `range=7|30|60` (default: `7`) or `since=YYYY-MM-DD&until=YYYY-MM-DD` (max span: 60 days)
 
-To learn more about Next.js, take a look at the following resources:
+Examples:
+- `/api/commits?repo=all&range=7`
+- `/api/commits?repo=enzo-prism/pti&since=2025-01-01&until=2025-01-31`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Response:
+```json
+[
+  {
+    "sha": "…",
+    "repo": "enzo-prism/pti",
+    "htmlUrl": "https://github.com/…",
+    "committedAt": "2025-01-01T12:34:56Z",
+    "messageSubject": "…",
+    "messageBody": "…"
+  }
+]
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy (Vercel)
 
-## Deploy on Vercel
+- Import `enzo-prism/ship`
+- Add environment variable `GITHUB_TOKEN` in the Vercel project settings
+- Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This app caches GitHub API calls (revalidate ~60 seconds) to avoid calling GitHub on every request.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
