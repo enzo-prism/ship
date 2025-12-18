@@ -559,7 +559,7 @@ export function CommitFeed() {
                 </div>
               </div>
               <Badge variant="secondary" className="shrink-0">
-                <ProjectIcon repo={commit.repo} className="h-3 w-3 text-muted-foreground" />
+                <ProjectIcon repo={commit.repo} className="h-3 w-3 text-[11px]" />
                 {repoDisplayName(commit.repo)}
               </Badge>
             </button>

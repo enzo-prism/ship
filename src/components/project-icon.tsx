@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { iconForRepo } from "@/lib/repo-icons";
+import { emojiForRepo } from "@/lib/repo-icons";
 import { cn } from "@/lib/utils";
 
 type ProjectIconProps = {
@@ -11,6 +11,13 @@ type ProjectIconProps = {
 };
 
 export function ProjectIcon({ repo, className }: ProjectIconProps) {
-  const Icon = iconForRepo(repo);
-  return <Icon aria-hidden="true" className={cn("h-4 w-4 text-muted-foreground", className)} />;
+  const emoji = emojiForRepo(repo);
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("inline-flex h-4 w-4 items-center justify-center text-[13px]", className)}
+    >
+      {emoji}
+    </span>
+  );
 }
