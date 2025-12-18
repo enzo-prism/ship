@@ -78,6 +78,8 @@ export function CommitFeed() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [commits, setCommits] = React.useState<CommitItem[]>([]);
+  const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
+  const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
@@ -104,8 +106,15 @@ export function CommitFeed() {
     async function run() {
       setLoading(true);
       setError(null);
+      setAuthMode(null);
+      setRepoFailures(null);
       try {
         const res = await fetch(`/api/commits?${requestQuery}`, { signal: controller.signal });
+        const auth = res.headers.get("X-Ship-Auth");
+        if (auth === "token" || auth === "none") setAuthMode(auth);
+        const failures = res.headers.get("X-Ship-Repo-Failures");
+        if (failures && Number.isFinite(Number(failures))) setRepoFailures(Number(failures));
+
         const data = (await res.json()) as CommitItem[] | { error?: string };
         if (!res.ok) {
           const message =
@@ -285,6 +294,22 @@ export function CommitFeed() {
           </div>
         </div>
       </div>
+
+      {authMode === "none" || repoFailures ? (
+        <div className="rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
+          {authMode === "none" ? (
+            <p>
+              Using unauthenticated GitHub API mode (rate-limited). Add{" "}
+              <span className="font-mono">GITHUB_TOKEN</span> in Vercel to improve reliability.
+            </p>
+          ) : null}
+          {repoFailures ? (
+            <p className={cn(authMode === "none" && "mt-2")}>
+              Some projects couldn’t be loaded ({repoFailures}). Showing available commits.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {error ? (
         <div className="rounded-lg border bg-card p-6">
