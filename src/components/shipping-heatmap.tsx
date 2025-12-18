@@ -145,12 +145,14 @@ function HeatmapLegend({ className }: { className?: string }) {
 function HeatmapSkeleton({
   weeks,
   monthLabels,
+  containerRef,
 }: {
   weeks: Array<Array<{ inRange: boolean; dayKey: string }>>;
   monthLabels: Array<string | null>;
+  containerRef?: React.Ref<HTMLDivElement>;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div ref={containerRef} className="overflow-x-auto">
       <div className="min-w-max pb-2">
         <div
           className="mb-1 grid grid-flow-col auto-cols-max gap-1 text-[10px] leading-none text-muted-foreground"
@@ -190,6 +192,7 @@ export function ShippingHeatmap({
   selectedRepo,
   loading = false,
 }: ShippingHeatmapProps) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
   const [rangeStartDay, rangeEndDay] = React.useMemo(() => {
     const start = startOfDay(rangeStart);
     const end = startOfDay(rangeEnd);
@@ -390,6 +393,15 @@ export function ShippingHeatmap({
     [weeks],
   );
 
+  React.useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    requestAnimationFrame(() => {
+      const maxScrollLeft = Math.max(0, node.scrollWidth - node.clientWidth);
+      node.scrollLeft = maxScrollLeft;
+    });
+  }, [rangeStartKey, rangeEndKey, loading, weeks.length]);
+
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -403,10 +415,10 @@ export function ShippingHeatmap({
 
       <CardContent className="space-y-3">
         {loading ? (
-          <HeatmapSkeleton weeks={skeletonWeeks} monthLabels={monthLabels} />
+          <HeatmapSkeleton weeks={skeletonWeeks} monthLabels={monthLabels} containerRef={scrollRef} />
         ) : (
           <TooltipProvider>
-            <div className="overflow-x-auto">
+            <div ref={scrollRef} className="overflow-x-auto">
               <div className="min-w-max pb-2">
                 <div
                   className="mb-1 grid grid-flow-col auto-cols-max gap-1 text-[10px] leading-none text-muted-foreground"
