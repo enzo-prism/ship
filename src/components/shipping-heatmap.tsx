@@ -347,11 +347,6 @@ export function ShippingHeatmap({
               ? `${bestDayCount} on ${bestDayFormatter.format(bestDayDate)}`
               : "—"}
           </Badge>
-          {bestDayCount > 0 && bestDayKey ? (
-            <Badge variant="outline" className="border-primary/30 text-primary">
-              {bestDayKey === rangeEndKey ? "🏆 New record day" : "🏆 Best day"}
-            </Badge>
-          ) : null}
         </>
       )}
     </div>

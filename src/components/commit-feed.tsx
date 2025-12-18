@@ -190,7 +190,6 @@ export function CommitFeed() {
   const [commits, setCommits] = React.useState<CommitItem[]>([]);
   const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
   const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
-  const [dataTruncated, setDataTruncated] = React.useState(false);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
@@ -219,14 +218,12 @@ export function CommitFeed() {
       setError(null);
       setAuthMode(null);
       setRepoFailures(null);
-      setDataTruncated(false);
       try {
         const res = await fetch(`/api/commits?${shareQuery}`, { signal: controller.signal });
         const auth = res.headers.get("X-Ship-Auth");
         if (auth === "token" || auth === "none") setAuthMode(auth);
         const failures = res.headers.get("X-Ship-Repo-Failures");
         if (failures && Number.isFinite(Number(failures))) setRepoFailures(Number(failures));
-        setDataTruncated(res.headers.get("X-Ship-Truncated") === "1");
 
         const data = (await res.json()) as CommitItem[] | { error?: string };
         if (!res.ok) {
@@ -439,7 +436,7 @@ export function CommitFeed() {
         loading={loading}
       />
 
-      {authMode === "none" || repoFailures || dataTruncated ? (
+      {authMode === "none" || repoFailures ? (
         <div className="rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
           {authMode === "none" ? (
             <p>
@@ -450,12 +447,6 @@ export function CommitFeed() {
           {repoFailures ? (
             <p className={cn(authMode === "none" && "mt-2")}>
               Some projects couldn’t be loaded ({repoFailures}). Showing available commits.
-            </p>
-          ) : null}
-          {dataTruncated ? (
-            <p className={cn((authMode === "none" || repoFailures) && "mt-2")}>
-              Commit history may be incomplete for this range. Narrow the range or filter to a
-              single project for full results.
             </p>
           ) : null}
         </div>
@@ -474,13 +465,6 @@ export function CommitFeed() {
         </div>
       ) : (
         <div className="rounded-lg border bg-card">
-          {commitOverflow ? (
-            <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
-              Showing latest {commitCountFormatter.format(COMMIT_LIST_LIMIT)} of{" "}
-              {commitCountFormatter.format(commits.length)} commits. Narrow the range to see
-              older items.
-            </div>
-          ) : null}
           {visibleCommits.map((commit, idx) => (
             <button
               key={`${commit.repo}:${commit.sha}`}
