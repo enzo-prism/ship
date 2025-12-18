@@ -18,18 +18,10 @@ export function HeroVideo({ className }: { className?: string }) {
     const update = () => setReducedMotion(media.matches);
     update();
 
-    if (media.addEventListener) {
-      media.addEventListener("change", update);
-    } else {
-      media.addListener(update);
-    }
+    media.addEventListener("change", update);
 
     return () => {
-      if (media.addEventListener) {
-        media.removeEventListener("change", update);
-      } else {
-        media.removeListener(update);
-      }
+      media.removeEventListener("change", update);
     };
   }, []);
 
