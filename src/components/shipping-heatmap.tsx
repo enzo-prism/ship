@@ -26,6 +26,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Flame } from "lucide-react";
+
 import { repoDisplayName } from "@/lib/repo-allowlist";
 import type { CommitItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -136,7 +138,15 @@ function useHoverSupport() {
   return hoverSupported;
 }
 
-function StatBadge({ label, description }: { label: string; description: string }) {
+function StatBadge({
+  label,
+  description,
+  icon,
+}: {
+  label: string;
+  description: string;
+  icon?: React.ReactNode;
+}) {
   const hoverSupported = useHoverSupport();
 
   const badge = (
@@ -146,7 +156,8 @@ function StatBadge({ label, description }: { label: string; description: string 
       className="cursor-help transition-colors hover:bg-secondary/80"
     >
       <button type="button" aria-label={label}>
-        {label}
+        {icon ? <span className="mr-1 inline-flex items-center">{icon}</span> : null}
+        <span>{label}</span>
       </button>
     </Badge>
   );
@@ -398,6 +409,7 @@ export function ShippingHeatmap({
             <StatBadge
               label={`${currentStreak}d streak`}
               description="Days in a row with updates, ending on the latest day shown."
+              icon={<Flame className="h-3.5 w-3.5 text-amber-500/70" />}
             />
             <StatBadge
               label={`Best: ${

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Project Ship",
+  title: "enzo.engineering",
   description: "A public feed of GitHub commits across enzo-prism projects.",
 };
 
