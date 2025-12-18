@@ -19,7 +19,7 @@ export default function Home() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <a
-                      href="https://design-prism.com"
+                      href="https://enzosison.com/education"
                       target="_blank"
                       rel="noreferrer"
                       className="mt-0.5 inline-flex"
