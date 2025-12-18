@@ -22,6 +22,8 @@ export class GitHubApiError extends Error {
   }
 }
 
+export type GitHubAuthMode = "token" | "none";
+
 function splitCommitMessage(message: string) {
   const lines = message.split(/\r?\n/);
   const subject = lines[0] ?? "";
@@ -41,10 +43,8 @@ async function readGitHubErrorMessage(res: Response) {
   }
 }
 
-function getGitHubToken() {
-  const token = process.env.GITHUB_TOKEN;
-  if (!token) throw new Error("Missing env var: GITHUB_TOKEN");
-  return token;
+export function readGitHubTokenFromEnv() {
+  return process.env.GITHUB_TOKEN ?? process.env.SHIP_GITHUB_TOKEN ?? process.env.GH_TOKEN ?? null;
 }
 
 export async function listCommitsForRepo(options: {
@@ -54,8 +54,9 @@ export async function listCommitsForRepo(options: {
   perPage?: number;
   maxPages?: number;
   revalidateSeconds?: number;
+  token?: string | null;
 }): Promise<CommitItem[]> {
-  const token = getGitHubToken();
+  const token = options.token ?? readGitHubTokenFromEnv();
   const perPage = options.perPage ?? 100;
   const maxPages = options.maxPages ?? 3;
   const revalidateSeconds = options.revalidateSeconds ?? 60;
@@ -69,13 +70,15 @@ export async function listCommitsForRepo(options: {
     url.searchParams.set("per_page", String(perPage));
     url.searchParams.set("page", String(page));
 
+    const headers: HeadersInit = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "project-ship",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "project-ship",
-      },
+      headers,
       cache: "force-cache",
       next: { revalidate: revalidateSeconds },
     });

@@ -5,7 +5,7 @@ import {
   REPO_ALLOWLIST,
   type AllowedRepo,
 } from "@/lib/repo-allowlist";
-import { GitHubApiError, listCommitsForRepo } from "@/lib/github";
+import { GitHubApiError, listCommitsForRepo, readGitHubTokenFromEnv } from "@/lib/github";
 import type { CommitItem } from "@/lib/types";
 
 type ApiError = { error: string };
@@ -74,6 +74,7 @@ export async function GET(req: Request) {
   if (!dateRangeResult.ok) return jsonError(400, dateRangeResult.error);
 
   let repos: AllowedRepo[];
+  const isAllProjects = repoParam === "all";
   if (repoParam === "all") {
     repos = [...REPO_ALLOWLIST];
   } else if (isAllowedRepo(repoParam)) {
@@ -83,16 +84,39 @@ export async function GET(req: Request) {
   }
 
   try {
-    const perRepo = await mapWithConcurrency(repos, repoParam === "all" ? 4 : 1, (repo) =>
-      listCommitsForRepo({
-        repo,
-        sinceIso: dateRangeResult.sinceIso,
-        untilIso: dateRangeResult.untilIso,
-        perPage: 100,
-        maxPages: 3,
-        revalidateSeconds: 60,
-      }),
-    );
+    const token = readGitHubTokenFromEnv();
+    const hasToken = Boolean(token);
+    const revalidateSeconds = hasToken ? 60 : 900;
+    const concurrency = isAllProjects ? (hasToken ? 4 : 2) : 1;
+    const maxPages = !hasToken && isAllProjects ? 1 : 3;
+
+    const repoFailures: Array<{ repo: AllowedRepo; status?: number; message: string }> = [];
+    const perRepo = await mapWithConcurrency(repos, concurrency, async (repo) => {
+      try {
+        return await listCommitsForRepo({
+          repo,
+          sinceIso: dateRangeResult.sinceIso,
+          untilIso: dateRangeResult.untilIso,
+          perPage: 100,
+          maxPages,
+          revalidateSeconds,
+          token,
+        });
+      } catch (err) {
+        if (!isAllProjects) throw err;
+
+        if (err instanceof GitHubApiError) {
+          if (err.status === 401) throw err;
+          if (err.status === 403 && /rate limit/i.test(err.message)) throw err;
+          repoFailures.push({ repo, status: err.status, message: err.message });
+          return [];
+        }
+
+        const message = err instanceof Error ? err.message : "Unknown error";
+        repoFailures.push({ repo, message });
+        return [];
+      }
+    });
 
     const commits = perRepo.flat();
     commits.sort(
@@ -101,7 +125,14 @@ export async function GET(req: Request) {
 
     return NextResponse.json<CommitItem[]>(commits, {
       headers: {
-        "Cache-Control": "s-maxage=60, stale-while-revalidate=300",
+        "Cache-Control": `s-maxage=${hasToken ? 60 : 900}, stale-while-revalidate=${hasToken ? 300 : 900}`,
+        "X-Ship-Auth": hasToken ? "token" : "none",
+        ...(isAllProjects && repoFailures.length > 0
+          ? {
+              "X-Ship-Partial": "1",
+              "X-Ship-Repo-Failures": String(repoFailures.length),
+            }
+          : {}),
       },
     });
   } catch (error) {
@@ -115,9 +146,6 @@ export async function GET(req: Request) {
       return jsonError(502, message);
     }
     const message = error instanceof Error ? error.message : "Unknown error";
-    if (message === "Missing env var: GITHUB_TOKEN") {
-      return jsonError(500, "Server is not configured.");
-    }
     return jsonError(500, message);
   }
 }
