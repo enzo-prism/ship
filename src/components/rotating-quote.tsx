@@ -276,6 +276,10 @@ const QUOTES: Quote[] = [
     text: "When something is important enough, you do it even if the odds are not in your favor.",
     author: "Elon",
   },
+  {
+    text: "Success is rented, not owned. And rent is due every day.",
+    author: "Rory Vaden",
+  },
 ];
 
 const ROTATE_INTERVAL_MS = 12000;
