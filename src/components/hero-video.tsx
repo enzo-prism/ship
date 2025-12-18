@@ -5,9 +5,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const VIDEO_SRC =
-  "https://res.cloudinary.com/dhqpqfw6w/video/upload/v1766084871/videoplayback_10_knu0tr.mp4";
+  "https://res.cloudinary.com/dhqpqfw6w/video/upload/v1766088136/iron_man_zcd3pj.mp4";
 const POSTER_SRC =
-  "https://res.cloudinary.com/dhqpqfw6w/video/upload/so_0/v1766084871/videoplayback_10_knu0tr.jpg";
+  "https://res.cloudinary.com/dhqpqfw6w/video/upload/so_0/v1766088136/iron_man_zcd3pj.jpg";
 
 export function HeroVideo({ className }: { className?: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
