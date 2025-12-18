@@ -15,6 +15,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "enzo.engineering",
   description: "A public feed of GitHub commits across enzo-prism projects.",
+  icons: {
+    icon: [
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-256.png", type: "image/png", sizes: "256x256" },
+    ],
+  },
+  openGraph: {
+    title: "enzo.engineering",
+    description: "A public feed of GitHub commits across enzo-prism projects.",
+    images: [
+      {
+        url: "/opengraph.png",
+        width: 1200,
+        height: 630,
+        alt: "enzo.engineering",
+      },
+    ],
+  },
 };
 
 export const viewport: Viewport = {

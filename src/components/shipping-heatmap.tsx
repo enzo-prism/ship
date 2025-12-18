@@ -447,7 +447,7 @@ export function ShippingHeatmap({
       <CardHeader className="pb-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
-            <CardTitle>Shipping heatmap</CardTitle>
+            <CardTitle>Code deployed</CardTitle>
           </div>
           {statsBadge}
         </div>
