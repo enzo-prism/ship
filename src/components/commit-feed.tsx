@@ -163,7 +163,7 @@ export function CommitFeed() {
     repoOptions.find((opt) => opt.value === selectedRepo)?.label ?? "All projects";
 
   const customLabel =
-    customRange?.from && (customRange.to ?? customRange.from)
+    rangeMode === "custom" && customRange?.from
       ? `${format(customRange.from, "MMM d, yyyy")} – ${format(
           customRange.to ?? customRange.from,
           "MMM d, yyyy",
