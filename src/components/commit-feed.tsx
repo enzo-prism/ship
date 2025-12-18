@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { addDays, differenceInCalendarDays, format } from "date-fns";
+import { addDays, differenceInCalendarDays, format, startOfDay } from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { CalendarIcon, Check, ChevronsUpDown, ExternalLink } from "lucide-react";
 
+import { ShippingHeatmap } from "@/components/shipping-heatmap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -179,6 +180,19 @@ export function CommitFeed() {
         )}`
       : "Custom range";
 
+  const { rangeStart, rangeEnd } = React.useMemo(() => {
+    if (rangeMode === "custom" && customRange?.from) {
+      const from = startOfDay(customRange.from);
+      const to = startOfDay(customRange.to ?? customRange.from);
+      return { rangeStart: from, rangeEnd: to };
+    }
+
+    const presetDays = rangeMode === "7" ? 7 : rangeMode === "30" ? 30 : rangeMode === "60" ? 60 : 7;
+    const end = startOfDay(new Date());
+    const start = addDays(end, -(presetDays - 1));
+    return { rangeStart: start, rangeEnd: end };
+  }, [customRange?.from, customRange?.to, rangeMode]);
+
   return (
     <div className="space-y-4">
       <div className="rounded-lg border bg-card p-3">
@@ -294,6 +308,14 @@ export function CommitFeed() {
           </div>
         </div>
       </div>
+
+      <ShippingHeatmap
+        commits={commits}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        selectedRepo={selectedRepo}
+        loading={loading}
+      />
 
       {authMode === "none" || repoFailures ? (
         <div className="rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
