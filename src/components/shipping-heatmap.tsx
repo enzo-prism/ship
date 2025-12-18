@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -120,6 +121,56 @@ const levelClasses: Record<number, string> = {
   3: "bg-emerald-400",
   4: "bg-emerald-700",
 };
+
+function useHoverSupport() {
+  const [hoverSupported, setHoverSupported] = React.useState(false);
+
+  React.useEffect(() => {
+    const media = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => setHoverSupported(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return hoverSupported;
+}
+
+function StatBadge({ label, description }: { label: string; description: string }) {
+  const hoverSupported = useHoverSupport();
+
+  const badge = (
+    <Badge
+      asChild
+      variant="secondary"
+      className="cursor-help transition-colors hover:bg-secondary/80"
+    >
+      <button type="button" aria-label={label}>
+        {label}
+      </button>
+    </Badge>
+  );
+
+  if (hoverSupported) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipContent side="bottom" align="center">
+          {description}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>{badge}</PopoverTrigger>
+      <PopoverContent side="bottom" align="center" className="w-56 text-xs">
+        {description}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function HeatmapLegend({ className }: { className?: string }) {
   return (
@@ -336,49 +387,26 @@ export function ShippingHeatmap({
           </>
         ) : (
           <>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
-                  {totalCommits} {pluralize(totalCommits, "commit")}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
-                Total updates shipped in this time range.
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
-                  {activeDays} active {pluralize(activeDays, "day")}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
-                Days with at least one update.
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
-                  {currentStreak}d streak
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
-                Days in a row with updates, ending on the latest day shown.
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
-                  Best:{" "}
-                  {bestDayCount > 0 && bestDayDate
-                    ? `${bestDayCount} on ${bestDayFormatter.format(bestDayDate)}`
-                    : "—"}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
-                The single day with the most updates.
-              </TooltipContent>
-            </Tooltip>
+            <StatBadge
+              label={`${totalCommits} ${pluralize(totalCommits, "commit")}`}
+              description="Total updates shipped in this time range."
+            />
+            <StatBadge
+              label={`${activeDays} active ${pluralize(activeDays, "day")}`}
+              description="Days with at least one update."
+            />
+            <StatBadge
+              label={`${currentStreak}d streak`}
+              description="Days in a row with updates, ending on the latest day shown."
+            />
+            <StatBadge
+              label={`Best: ${
+                bestDayCount > 0 && bestDayDate
+                  ? `${bestDayCount} on ${bestDayFormatter.format(bestDayDate)}`
+                  : "—"
+              }`}
+              description="The single day with the most updates."
+            />
           </>
         )}
       </div>
