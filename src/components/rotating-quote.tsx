@@ -252,6 +252,30 @@ const QUOTES: Quote[] = [
     text: "The way to get started is to quit talking and begin doing.",
     author: "Walt Disney",
   },
+  {
+    text: "You are in danger of living a life so comfortable and soft that you will die without ever realizing your true potential.",
+    author: "David Goggins",
+  },
+  {
+    text: "Don't stop when you're tired. Stop when you're done.",
+    author: "David Goggins",
+  },
+  {
+    text: "Your excuses are lies you tell yourself to avoid discomfort.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Play long-term games with long-term people.",
+    author: "Naval",
+  },
+  {
+    text: "Escape competition through authenticity.",
+    author: "Naval",
+  },
+  {
+    text: "When something is important enough, you do it even if the odds are not in your favor.",
+    author: "Elon",
+  },
 ];
 
 const ROTATE_INTERVAL_MS = 12000;

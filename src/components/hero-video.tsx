@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const VIDEO_SRC =
   "https://res.cloudinary.com/dhqpqfw6w/video/upload/v1766088136/iron_man_zcd3pj.mp4";
 const POSTER_SRC =
-  "https://res.cloudinary.com/dhqpqfw6w/video/upload/so_0/v1766088136/iron_man_zcd3pj.jpg";
+  "https://res.cloudinary.com/dhqpqfw6w/image/upload/v1766098456/Screenshot_2025-12-18_at_2.53.18_PM_1_jpgpgm.webp";
 
 export function HeroVideo({ className }: { className?: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
