@@ -15,12 +15,27 @@ export const REPO_ALLOWLIST = [
 
 export type AllowedRepo = (typeof REPO_ALLOWLIST)[number];
 
+const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
+  "age-boldly-vibrantly": "Rebellious Aging",
+  "exquisite-dentistry": "Exquisite Dentistry",
+  "leadership-retreat": "Leadership Retreat",
+  "canary-foundation": "Canary Foundation",
+  "prism-website": "Prism",
+  "pti": "PTI",
+  "chris-dentist": "Dr. Wong",
+  "canary-cove-alpha": "Canary Cove",
+  "drnjo": "Dental Strategies",
+  "wine-country-root-canal": "Wine Country Root Canal",
+  "family-first-smile-care": "Family First Smile Care",
+  "saorsa-2": "Saorsa Growth Partners",
+};
+
 export function isAllowedRepo(value: string): value is AllowedRepo {
   return (REPO_ALLOWLIST as readonly string[]).includes(value);
 }
 
 export function repoDisplayName(repo: string) {
   const parts = repo.split("/");
-  return parts.at(-1) ?? repo;
+  const slug = parts.at(-1) ?? repo;
+  return DISPLAY_NAME_OVERRIDES[slug.toLowerCase()] ?? slug;
 }
-
