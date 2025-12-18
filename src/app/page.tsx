@@ -4,6 +4,7 @@ import { CommitFeed } from "@/components/commit-feed";
 import { HeroVideo } from "@/components/hero-video";
 import { RotatingQuote } from "@/components/rotating-quote";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Home() {
@@ -50,6 +51,16 @@ export default function Home() {
           >
             <CommitFeed />
           </Suspense>
+          <footer className="pt-2">
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/80 px-3 py-2 text-xs text-muted-foreground shadow-sm">
+                <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
+                  Theme
+                </span>
+                <ThemeToggle className="bg-transparent" />
+              </div>
+            </div>
+          </footer>
         </div>
       </main>
     </div>

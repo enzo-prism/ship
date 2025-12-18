@@ -115,11 +115,11 @@ function intensityLevel(count: number, q1: number, q2: number, q3: number) {
 }
 
 const levelClasses: Record<number, string> = {
-  0: "bg-white",
-  1: "bg-emerald-100",
-  2: "bg-emerald-200",
-  3: "bg-emerald-400",
-  4: "bg-emerald-700",
+  0: "bg-[#f8fbf9] dark:bg-[#0b0f0d]",
+  1: "bg-[#e3f2ea] dark:bg-[#12231a]",
+  2: "bg-[#bedfcd] dark:bg-[#1d3a2a]",
+  3: "bg-[#7fb79a] dark:bg-[#2a5b41]",
+  4: "bg-[#2f7a52] dark:bg-[#3f8b62]",
 };
 
 function useHoverSupport() {
