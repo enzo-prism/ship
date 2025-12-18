@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { CalendarIcon, Check, ChevronsUpDown, ExternalLink } from "lucide-react";
 
-import { CopyLinkButton } from "@/components/copy-link-button";
 import { ProjectIcon } from "@/components/project-icon";
 import { ShippingHeatmap } from "@/components/shipping-heatmap";
 import { Badge } from "@/components/ui/badge";
@@ -494,11 +493,8 @@ export function CommitFeed() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>
-              {loading ? "Loading…" : `${commits.length} commit${commits.length === 1 ? "" : "s"}`}
-            </span>
-            <CopyLinkButton path={sharePath} />
+          <div className="text-sm text-muted-foreground">
+            {loading ? "Loading…" : `${commits.length} commit${commits.length === 1 ? "" : "s"}`}
           </div>
         </div>
       </div>
