@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 import { DEFAULT_RANGE_DAYS, MAX_RANGE_DAYS } from "@/lib/date-range";
 import { isAllowedRepo, REPO_ALLOWLIST, repoDisplayName } from "@/lib/repo-allowlist";
-import type { CommitItem } from "@/lib/types";
+import type { CommitItem, CommitsResponse, DailySummary } from "@/lib/types";
 
 const RANGE_PRESET_OPTIONS = [
   { value: "7", label: "7d", days: 7 },
@@ -46,7 +46,6 @@ const RANGE_PRESET_OPTIONS = [
 const DEFAULT_RANGE_VALUE =
   RANGE_PRESET_OPTIONS.find((option) => option.days === DEFAULT_RANGE_DAYS)?.value ??
   RANGE_PRESET_OPTIONS[RANGE_PRESET_OPTIONS.length - 1].value;
-const COMMIT_LIST_LIMIT = 1000;
 const commitCountFormatter = new Intl.NumberFormat();
 
 type RangePreset = (typeof RANGE_PRESET_OPTIONS)[number]["value"];
@@ -209,6 +208,8 @@ export function CommitFeed() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [commits, setCommits] = React.useState<CommitItem[]>([]);
+  const [dailySummaries, setDailySummaries] = React.useState<DailySummary[]>([]);
+  const [totalCommits, setTotalCommits] = React.useState(0);
   const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
   const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
 
@@ -219,6 +220,13 @@ export function CommitFeed() {
     () => buildShareQuery({ selectedRepo, rangeMode, customRange }),
     [selectedRepo, rangeMode, customRange],
   );
+
+  const tzOffset = React.useMemo(() => String(new Date().getTimezoneOffset()), []);
+  const apiQuery = React.useMemo(() => {
+    const params = new URLSearchParams(shareQuery);
+    params.set("tz", tzOffset);
+    return params.toString();
+  }, [shareQuery, tzOffset]);
 
   const sharePath = React.useMemo(
     () => (shareQuery ? `${pathname}?${shareQuery}` : pathname),
@@ -240,13 +248,13 @@ export function CommitFeed() {
       setAuthMode(null);
       setRepoFailures(null);
       try {
-        const res = await fetch(`/api/commits?${shareQuery}`, { signal: controller.signal });
+        const res = await fetch(`/api/commits?${apiQuery}`, { signal: controller.signal });
         const auth = res.headers.get("X-Ship-Auth");
         if (auth === "token" || auth === "none") setAuthMode(auth);
         const failures = res.headers.get("X-Ship-Repo-Failures");
         if (failures && Number.isFinite(Number(failures))) setRepoFailures(Number(failures));
 
-        const data = (await res.json()) as CommitItem[] | { error?: string };
+        const data = (await res.json()) as CommitsResponse | { error?: string };
         if (!res.ok) {
           const message =
             typeof (data as { error?: string }).error === "string"
@@ -254,11 +262,23 @@ export function CommitFeed() {
               : "Failed to load commits.";
           throw new Error(message);
         }
-        setCommits(data as CommitItem[]);
+        if ("commits" in data && Array.isArray(data.commits)) {
+          setCommits(data.commits);
+          setDailySummaries(Array.isArray(data.dailySummaries) ? data.dailySummaries : []);
+          setTotalCommits(
+            Number.isFinite(data.totalCommits) ? data.totalCommits : data.commits.length,
+          );
+        } else {
+          setCommits([]);
+          setDailySummaries([]);
+          setTotalCommits(0);
+        }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         const message = err instanceof Error ? err.message : "Failed to load commits.";
         setCommits([]);
+        setDailySummaries([]);
+        setTotalCommits(0);
         setError(message);
       } finally {
         setLoading(false);
@@ -267,7 +287,7 @@ export function CommitFeed() {
 
     void run();
     return () => controller.abort();
-  }, [shareQuery]);
+  }, [apiQuery]);
 
   function openCommit(commit: CommitItem) {
     setSelectedCommit(commit);
@@ -324,9 +344,6 @@ export function CommitFeed() {
     const start = addDays(end, -(presetDays - 1));
     return { rangeStart: start, rangeEnd: end };
   }, [customRange?.from, customRange?.to, rangeMode]);
-
-  const commitOverflow = commits.length > COMMIT_LIST_LIMIT;
-  const visibleCommits = commitOverflow ? commits.slice(0, COMMIT_LIST_LIMIT) : commits;
 
   return (
     <div className="space-y-4">
@@ -494,17 +511,20 @@ export function CommitFeed() {
           </div>
 
           <div className="text-sm text-muted-foreground">
-            {loading ? "Loading…" : `${commits.length} commit${commits.length === 1 ? "" : "s"}`}
+            {loading
+              ? "Loading…"
+              : `${commitCountFormatter.format(totalCommits)} commit${totalCommits === 1 ? "" : "s"}`}
           </div>
         </div>
       </div>
 
       <ShippingHeatmap
-        commits={commits}
+        dailySummaries={dailySummaries}
         rangeStart={rangeStart}
         rangeEnd={rangeEnd}
         selectedRepo={selectedRepo}
         loading={loading}
+        totalCommits={totalCommits}
       />
 
       {authMode === "none" || repoFailures ? (
@@ -536,7 +556,7 @@ export function CommitFeed() {
         </div>
       ) : (
         <div className="rounded-lg border bg-card">
-          {visibleCommits.map((commit, idx) => (
+          {commits.map((commit, idx) => (
             <button
               key={`${commit.repo}:${commit.sha}`}
               type="button"

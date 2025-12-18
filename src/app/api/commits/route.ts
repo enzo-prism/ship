@@ -13,9 +13,17 @@ import {
   type AllowedRepo,
 } from "@/lib/repo-allowlist";
 import { GitHubApiError, listCommitsForRepo, readGitHubTokenFromEnv } from "@/lib/github";
-import type { CommitItem } from "@/lib/types";
+import type { CommitsResponse, DayRepoCount } from "@/lib/types";
 
 type ApiError = { error: string };
+
+const FEED_LIMIT = 300;
+
+function toDayKey(iso: string, tzOffsetMinutes: number) {
+  const date = new Date(iso);
+  const adjusted = new Date(date.getTime() - tzOffsetMinutes * 60 * 1000);
+  return adjusted.toISOString().slice(0, 10);
+}
 
 function jsonError(status: number, error: string) {
   return NextResponse.json<ApiError>(
@@ -58,6 +66,10 @@ export async function GET(req: Request) {
   const rangeParam = searchParams.get("range")?.trim();
   const sinceParam = searchParams.get("since")?.trim();
   const untilParam = searchParams.get("until")?.trim();
+  const tzParam = searchParams.get("tz")?.trim();
+  const tzValue = tzParam ? Number(tzParam) : 0;
+  // Apply client timezone offset so day buckets match the viewer's local day boundaries.
+  const tzOffsetMinutes = Number.isFinite(tzValue) ? Math.max(-840, Math.min(840, tzValue)) : 0;
 
   if (rangeParam && (sinceParam || untilParam)) {
     return jsonError(400, "Use either `range` or (`since` and `until`), not both.");
@@ -146,9 +158,45 @@ export async function GET(req: Request) {
       (a, b) => new Date(b.committedAt).getTime() - new Date(a.committedAt).getTime(),
     );
 
+    const totalCommits = commits.length;
+    const limitedCommits = commits.slice(0, FEED_LIMIT);
+
+    const dayCounts = new Map<string, number>();
+    const perDayRepos = new Map<string, Map<string, number>>();
+    for (const commit of commits) {
+      const dayKey = toDayKey(commit.committedAt, tzOffsetMinutes);
+      dayCounts.set(dayKey, (dayCounts.get(dayKey) ?? 0) + 1);
+      if (!isAllProjects) continue;
+      const existing = perDayRepos.get(dayKey) ?? new Map<string, number>();
+      existing.set(commit.repo, (existing.get(commit.repo) ?? 0) + 1);
+      perDayRepos.set(dayKey, existing);
+    }
+
+    const dailySummaries = Array.from(dayCounts.entries())
+      .map(([dayKey, count]) => {
+        let topRepos: DayRepoCount[] = [];
+        if (isAllProjects) {
+          const repoMap = perDayRepos.get(dayKey);
+          if (repoMap) {
+            topRepos = Array.from(repoMap.entries())
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 2)
+              .map(([repo, repoCount]) => ({ repo, count: repoCount }));
+          }
+        }
+        return { dayKey, count, topRepos };
+      })
+      .sort((a, b) => (a.dayKey < b.dayKey ? -1 : 1));
+
     const isPartial = (isAllProjects && repoFailures.length > 0) || truncated;
 
-    return NextResponse.json<CommitItem[]>(commits, {
+    const payload: CommitsResponse = {
+      commits: limitedCommits,
+      totalCommits,
+      dailySummaries,
+    };
+
+    return NextResponse.json<CommitsResponse>(payload, {
       headers: {
         "Cache-Control": `s-maxage=${hasToken ? 60 : 900}, stale-while-revalidate=${hasToken ? 300 : 900}`,
         "X-Ship-Auth": hasToken ? "token" : "none",

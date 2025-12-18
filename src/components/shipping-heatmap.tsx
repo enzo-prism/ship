@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -29,18 +28,17 @@ import {
 import { Flame } from "lucide-react";
 
 import { repoDisplayName } from "@/lib/repo-allowlist";
-import type { CommitItem } from "@/lib/types";
+import type { DailySummary, DayRepoCount } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type ShippingHeatmapProps = {
-  commits: CommitItem[];
+  dailySummaries: DailySummary[];
+  totalCommits: number;
   rangeStart: Date;
   rangeEnd: Date;
   selectedRepo: string;
   loading?: boolean;
 };
-
-type DayRepoCount = { repo: string; count: number };
 
 type HeatmapCell = {
   date: Date;
@@ -248,7 +246,8 @@ function HeatmapSkeleton({
 }
 
 export function ShippingHeatmap({
-  commits,
+  dailySummaries,
+  totalCommits,
   rangeStart,
   rangeEnd,
   selectedRepo,
@@ -264,28 +263,25 @@ export function ShippingHeatmap({
   const rangeStartKey = React.useMemo(() => format(rangeStartDay, "yyyy-MM-dd"), [rangeStartDay]);
   const rangeEndKey = React.useMemo(() => format(rangeEndDay, "yyyy-MM-dd"), [rangeEndDay]);
 
-  const { dayCounts, perDayRepoCounts, totalCommits } = React.useMemo(() => {
+  const { dayCounts, summariesByDay } = React.useMemo(() => {
     const counts = new Map<string, number>();
-    const perRepo = new Map<string, Map<string, number>>();
+    const summaries = new Map<string, DailySummary>();
 
-    for (const commit of commits) {
-      const dayKey = format(new Date(commit.committedAt), "yyyy-MM-dd");
-      if (dayKey < rangeStartKey || dayKey > rangeEndKey) continue;
-
-      counts.set(dayKey, (counts.get(dayKey) ?? 0) + 1);
-
-      if (selectedRepo === "all") {
-        const existing = perRepo.get(dayKey) ?? new Map<string, number>();
-        existing.set(commit.repo, (existing.get(commit.repo) ?? 0) + 1);
-        perRepo.set(dayKey, existing);
-      }
+    for (const summary of dailySummaries) {
+      if (summary.dayKey < rangeStartKey || summary.dayKey > rangeEndKey) continue;
+      counts.set(summary.dayKey, summary.count);
+      summaries.set(summary.dayKey, summary);
     }
 
-    let total = 0;
-    for (const value of counts.values()) total += value;
+    return { dayCounts: counts, summariesByDay: summaries };
+  }, [dailySummaries, rangeStartKey, rangeEndKey]);
 
-    return { dayCounts: counts, perDayRepoCounts: perRepo, totalCommits: total };
-  }, [commits, rangeStartKey, rangeEndKey, selectedRepo]);
+  const totalCommitsInRange = React.useMemo(() => {
+    if (totalCommits > 0) return totalCommits;
+    let total = 0;
+    for (const value of dayCounts.values()) total += value;
+    return total;
+  }, [dayCounts, totalCommits]);
 
   const { activeDays, currentStreak, bestDayKey, bestDayCount } = React.useMemo(() => {
     const active = dayCounts.size;
@@ -345,19 +341,10 @@ export function ShippingHeatmap({
         const dayKey = format(date, "yyyy-MM-dd");
         const inRange = dayKey >= rangeStartKey && dayKey <= rangeEndKey;
 
-        const count = inRange ? (dayCounts.get(dayKey) ?? 0) : 0;
-        const topRepos: DayRepoCount[] = [];
-        if (inRange && selectedRepo === "all") {
-          const perRepo = perDayRepoCounts.get(dayKey);
-          if (perRepo) {
-            const entries = Array.from(perRepo.entries())
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 2);
-            for (const [repo, repoCount] of entries) {
-              topRepos.push({ repo, count: repoCount });
-            }
-          }
-        }
+        const summary = summariesByDay.get(dayKey);
+        const count = inRange ? (summary?.count ?? 0) : 0;
+        const topRepos: DayRepoCount[] =
+          inRange && selectedRepo === "all" ? summary?.topRepos ?? [] : [];
 
         days.push({ date, dayKey, inRange, count, topRepos });
       }
@@ -379,7 +366,7 @@ export function ShippingHeatmap({
       gridStartKey: format(gridStart, "yyyy-MM-dd"),
       monthLabels: labels,
     };
-  }, [dayCounts, perDayRepoCounts, rangeEndDay, rangeEndKey, rangeStartDay, rangeStartKey, selectedRepo]);
+  }, [dayCounts, rangeEndDay, rangeEndKey, rangeStartDay, rangeStartKey, selectedRepo, summariesByDay]);
 
   const bestDayDate = React.useMemo(() => {
     if (!bestDayKey) return null;
@@ -399,7 +386,7 @@ export function ShippingHeatmap({
         ) : (
           <>
             <StatBadge
-              label={`${totalCommits} ${pluralize(totalCommits, "commit")}`}
+              label={`${totalCommitsInRange} ${pluralize(totalCommitsInRange, "commit")}`}
               description="Total updates shipped in this time range."
             />
             <StatBadge

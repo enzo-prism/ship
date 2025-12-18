@@ -7,3 +7,19 @@ export type CommitItem = {
   messageBody: string;
 };
 
+export type DayRepoCount = {
+  repo: string;
+  count: number;
+};
+
+export type DailySummary = {
+  dayKey: string;
+  count: number;
+  topRepos: DayRepoCount[];
+};
+
+export type CommitsResponse = {
+  commits: CommitItem[];
+  totalCommits: number;
+  dailySummaries: DailySummary[];
+};
