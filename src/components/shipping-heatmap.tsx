@@ -114,11 +114,11 @@ function intensityLevel(count: number, q1: number, q2: number, q3: number) {
 }
 
 const levelClasses: Record<number, string> = {
-  0: "bg-muted/35",
-  1: "bg-primary/15",
-  2: "bg-primary/25",
-  3: "bg-primary/35",
-  4: "bg-primary/50",
+  0: "bg-white",
+  1: "bg-emerald-100",
+  2: "bg-emerald-200",
+  3: "bg-emerald-400",
+  4: "bg-emerald-700",
 };
 
 function HeatmapLegend({ className }: { className?: string }) {
@@ -131,7 +131,7 @@ function HeatmapLegend({ className }: { className?: string }) {
             key={idx}
             className={cn(
               "h-3 w-3 rounded-[3px] border border-border/60",
-              idx === 0 ? "bg-muted/35" : levelClasses[idx],
+              levelClasses[idx],
             )}
             aria-hidden="true"
           />
