@@ -22,4 +22,7 @@ export type CommitsResponse = {
   commits: CommitItem[];
   totalCommits: number;
   dailySummaries: DailySummary[];
+  page: number;
+  pageSize: number;
+  totalPages: number;
 };

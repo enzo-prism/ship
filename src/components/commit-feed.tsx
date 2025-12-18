@@ -47,6 +47,7 @@ const DEFAULT_RANGE_VALUE =
   RANGE_PRESET_OPTIONS.find((option) => option.days === DEFAULT_RANGE_DAYS)?.value ??
   RANGE_PRESET_OPTIONS[RANGE_PRESET_OPTIONS.length - 1].value;
 const commitCountFormatter = new Intl.NumberFormat();
+const DEFAULT_PAGE_SIZE = 50;
 
 type RangePreset = (typeof RANGE_PRESET_OPTIONS)[number]["value"];
 type RangeMode = RangePreset | "custom";
@@ -91,6 +92,7 @@ type ParsedFilters = {
   selectedRepo: string;
   rangeMode: RangeMode;
   customRange?: DateRange;
+  page: number;
 };
 
 type SearchParamsLike = Pick<URLSearchParams, "get">;
@@ -101,6 +103,9 @@ function parseFiltersFromSearchParams(params: SearchParamsLike): ParsedFilters {
 
   const sinceParam = params.get("since")?.trim();
   const untilParam = params.get("until")?.trim();
+  const pageParam = params.get("page")?.trim();
+  const pageValue = pageParam ? Number(pageParam) : 1;
+  const page = Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : 1;
 
   if (sinceParam && untilParam) {
     const sinceDate = parseYmdToLocalDate(sinceParam);
@@ -111,23 +116,24 @@ function parseFiltersFromSearchParams(params: SearchParamsLike): ParsedFilters {
         sinceDate.getTime() <= untilDate.getTime() ? [sinceDate, untilDate] : [untilDate, sinceDate];
       const daysInclusive = differenceInCalendarDays(to, from) + 1;
       if (daysInclusive >= 1 && daysInclusive <= MAX_RANGE_DAYS) {
-        return { selectedRepo, rangeMode: "custom", customRange: { from, to } };
+        return { selectedRepo, rangeMode: "custom", customRange: { from, to }, page };
       }
     }
   }
 
   const rangeParam = params.get("range")?.trim() ?? "";
   if (rangeParam && isRangePreset(rangeParam)) {
-    return { selectedRepo, rangeMode: rangeParam };
+    return { selectedRepo, rangeMode: rangeParam, page };
   }
 
-  return { selectedRepo, rangeMode: DEFAULT_RANGE_VALUE };
+  return { selectedRepo, rangeMode: DEFAULT_RANGE_VALUE, page };
 }
 
 function buildShareQuery(options: {
   selectedRepo: string;
   rangeMode: RangeMode;
   customRange?: DateRange;
+  page: number;
 }) {
   const params = new URLSearchParams();
   params.set("repo", options.selectedRepo);
@@ -140,6 +146,10 @@ function buildShareQuery(options: {
   } else {
     const rangeValue = isRangePreset(options.rangeMode) ? options.rangeMode : DEFAULT_RANGE_VALUE;
     params.set("range", rangeValue);
+  }
+
+  if (options.page > 1) {
+    params.set("page", String(options.page));
   }
 
   return params.toString();
@@ -189,6 +199,7 @@ export function CommitFeed() {
   );
 
   const initialFiltersRef = React.useRef<ParsedFilters | null>(null);
+  const didInitRef = React.useRef(false);
   if (!initialFiltersRef.current) {
     initialFiltersRef.current = parseFiltersFromSearchParams(searchParams);
   }
@@ -202,6 +213,8 @@ export function CommitFeed() {
   const [customRange, setCustomRange] = React.useState<DateRange | undefined>(
     initialFilters.customRange,
   );
+  const [page, setPage] = React.useState(initialFilters.page);
+  const [totalPages, setTotalPages] = React.useState(1);
   const [customOpen, setCustomOpen] = React.useState(false);
   const [rangeError, setRangeError] = React.useState<string | null>(null);
 
@@ -217,8 +230,8 @@ export function CommitFeed() {
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
 
   const shareQuery = React.useMemo(
-    () => buildShareQuery({ selectedRepo, rangeMode, customRange }),
-    [selectedRepo, rangeMode, customRange],
+    () => buildShareQuery({ selectedRepo, rangeMode, customRange, page }),
+    [selectedRepo, rangeMode, customRange, page],
   );
 
   const tzOffset = React.useMemo(() => String(new Date().getTimezoneOffset()), []);
@@ -265,13 +278,23 @@ export function CommitFeed() {
         if ("commits" in data && Array.isArray(data.commits)) {
           setCommits(data.commits);
           setDailySummaries(Array.isArray(data.dailySummaries) ? data.dailySummaries : []);
-          setTotalCommits(
-            Number.isFinite(data.totalCommits) ? data.totalCommits : data.commits.length,
-          );
+          const nextTotalCommits = Number.isFinite(data.totalCommits)
+            ? data.totalCommits
+            : data.commits.length;
+          const nextPageSize = Number.isFinite(data.pageSize) ? data.pageSize : DEFAULT_PAGE_SIZE;
+          const nextTotalPages = Number.isFinite(data.totalPages)
+            ? data.totalPages
+            : Math.max(1, Math.ceil(nextTotalCommits / nextPageSize));
+          setTotalCommits(nextTotalCommits);
+          setTotalPages(nextTotalPages);
+          if (Number.isFinite(data.page) && data.page !== page) {
+            setPage(data.page);
+          }
         } else {
           setCommits([]);
           setDailySummaries([]);
           setTotalCommits(0);
+          setTotalPages(1);
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -279,6 +302,7 @@ export function CommitFeed() {
         setCommits([]);
         setDailySummaries([]);
         setTotalCommits(0);
+        setTotalPages(1);
         setError(message);
       } finally {
         setLoading(false);
@@ -318,6 +342,14 @@ export function CommitFeed() {
     setRangeMode("custom");
     if (range.to) setCustomOpen(false);
   }
+
+  React.useEffect(() => {
+    if (!didInitRef.current) {
+      didInitRef.current = true;
+      return;
+    }
+    setPage(1);
+  }, [selectedRepo, rangeMode, customRange?.from?.getTime(), customRange?.to?.getTime()]);
 
   const selectedRepoLabel =
     repoOptions.find((opt) => opt.value === selectedRepo)?.label ?? "All projects";
@@ -585,6 +617,34 @@ export function CommitFeed() {
           ))}
         </div>
       )}
+
+      {!loading && !error && totalPages > 1 ? (
+        <div className="flex items-center justify-between gap-3 rounded-lg border bg-card px-3 py-2 text-xs text-muted-foreground">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={page <= 1 || loading}
+            aria-label="Previous page"
+          >
+            Previous
+          </Button>
+          <span>
+            Page {page} of {totalPages}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            disabled={page >= totalPages || loading}
+            aria-label="Next page"
+          >
+            Next
+          </Button>
+        </div>
+      ) : null}
 
       <Dialog
         open={dialogOpen}

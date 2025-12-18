@@ -67,9 +67,12 @@ export async function GET(req: Request) {
   const sinceParam = searchParams.get("since")?.trim();
   const untilParam = searchParams.get("until")?.trim();
   const tzParam = searchParams.get("tz")?.trim();
+  const pageParam = searchParams.get("page")?.trim();
   const tzValue = tzParam ? Number(tzParam) : 0;
   // Apply client timezone offset so day buckets match the viewer's local day boundaries.
   const tzOffsetMinutes = Number.isFinite(tzValue) ? Math.max(-840, Math.min(840, tzValue)) : 0;
+  const pageValue = pageParam ? Number(pageParam) : 1;
+  const page = Number.isFinite(pageValue) && pageValue > 0 ? Math.floor(pageValue) : 1;
 
   if (rangeParam && (sinceParam || untilParam)) {
     return jsonError(400, "Use either `range` or (`since` and `until`), not both.");
@@ -159,7 +162,10 @@ export async function GET(req: Request) {
     );
 
     const totalCommits = commits.length;
-    const limitedCommits = commits.slice(0, FEED_LIMIT);
+    const totalPages = Math.max(1, Math.ceil(totalCommits / FEED_LIMIT));
+    const safePage = Math.min(page, totalPages);
+    const startIndex = (safePage - 1) * FEED_LIMIT;
+    const limitedCommits = commits.slice(startIndex, startIndex + FEED_LIMIT);
 
     const dayCounts = new Map<string, number>();
     const perDayRepos = new Map<string, Map<string, number>>();
@@ -194,6 +200,9 @@ export async function GET(req: Request) {
       commits: limitedCommits,
       totalCommits,
       dailySummaries,
+      page: safePage,
+      pageSize: FEED_LIMIT,
+      totalPages,
     };
 
     return NextResponse.json<CommitsResponse>(payload, {
