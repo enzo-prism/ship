@@ -107,12 +107,17 @@ export async function GET(req: Request) {
   } catch (error) {
     if (error instanceof GitHubApiError) {
       const message =
-        error.status === 403
+        error.status === 403 && /rate limit/i.test(error.message)
           ? "GitHub API rate limit reached. Try again shortly."
+          : error.status === 401
+            ? "GitHub API authentication failed. Try again later."
           : `GitHub API error: ${error.message}`;
       return jsonError(502, message);
     }
     const message = error instanceof Error ? error.message : "Unknown error";
+    if (message === "Missing env var: GITHUB_TOKEN") {
+      return jsonError(500, "Server is not configured.");
+    }
     return jsonError(500, message);
   }
 }
