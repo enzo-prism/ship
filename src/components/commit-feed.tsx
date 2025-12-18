@@ -500,10 +500,11 @@ export function CommitFeed() {
                 <PopoverTrigger asChild>
                   <Button
                     variant={rangeMode === "custom" ? "secondary" : "outline"}
-                    className="justify-start"
+                    size="icon"
+                    className="h-9 w-9"
+                    aria-label="Select custom date range"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                    <span className="truncate">{customLabel}</span>
+                    <CalendarIcon className="h-4 w-4 opacity-70" />
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
