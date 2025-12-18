@@ -19,7 +19,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,6 +54,20 @@ type RangeMode = RangePreset | "custom";
 
 function isRangePreset(value: string): value is RangePreset {
   return RANGE_PRESET_OPTIONS.some((option) => option.value === value);
+}
+
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = React.useState(false);
+
+  React.useEffect(() => {
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, [query]);
+
+  return matches;
 }
 
 function parseYmdToLocalDate(value: string) {
@@ -159,6 +179,7 @@ export function CommitFeed() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const repoOptions = React.useMemo(
     () => [
@@ -312,47 +333,94 @@ export function CommitFeed() {
       <div className="rounded-lg border bg-card p-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <Popover open={repoOpen} onOpenChange={setRepoOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={repoOpen}
-                  className="w-full justify-between md:w-[260px]"
-                >
-                  <span className="truncate">{selectedRepoLabel}</span>
-                  <ChevronsUpDown className="h-4 w-4 opacity-60" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                <Command>
-                  <CommandInput placeholder="Search projects…" />
-                  <CommandList>
-                    <CommandEmpty>No projects found.</CommandEmpty>
-                    <CommandGroup>
-                      {repoOptions.map((opt) => (
-                        <CommandItem
-                          key={opt.value}
-                          value={opt.label}
-                          onSelect={() => {
-                            setSelectedRepo(opt.value);
-                            setRepoOpen(false);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              selectedRepo === opt.value ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                          <span className="truncate">{opt.label}</span>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            {isMobile ? (
+              <Dialog open={repoOpen} onOpenChange={setRepoOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={repoOpen}
+                    className="w-full justify-between md:w-[260px]"
+                  >
+                    <span className="truncate">{selectedRepoLabel}</span>
+                    <ChevronsUpDown className="h-4 w-4 opacity-60" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="top-16 max-h-[80vh] translate-y-0 p-0">
+                  <DialogHeader className="px-4 pt-4 text-left">
+                    <DialogTitle className="text-sm font-medium">Select project</DialogTitle>
+                  </DialogHeader>
+                  <Command className="rounded-none border-t">
+                    <CommandInput placeholder="Search projects…" autoFocus />
+                    <CommandList className="max-h-[60vh]">
+                      <CommandEmpty>No projects found.</CommandEmpty>
+                      <CommandGroup>
+                        {repoOptions.map((opt) => (
+                          <CommandItem
+                            key={opt.value}
+                            value={opt.label}
+                            onSelect={() => {
+                              setSelectedRepo(opt.value);
+                              setRepoOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedRepo === opt.value ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <span className="truncate">{opt.label}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <Popover open={repoOpen} onOpenChange={setRepoOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={repoOpen}
+                    className="w-full justify-between md:w-[260px]"
+                  >
+                    <span className="truncate">{selectedRepoLabel}</span>
+                    <ChevronsUpDown className="h-4 w-4 opacity-60" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search projects…" />
+                    <CommandList>
+                      <CommandEmpty>No projects found.</CommandEmpty>
+                      <CommandGroup>
+                        {repoOptions.map((opt) => (
+                          <CommandItem
+                            key={opt.value}
+                            value={opt.label}
+                            onSelect={() => {
+                              setSelectedRepo(opt.value);
+                              setRepoOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedRepo === opt.value ? "opacity-100" : "opacity-0",
+                              )}
+                            />
+                            <span className="truncate">{opt.label}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
 
             <div className="flex items-center gap-2">
               <ToggleGroup
