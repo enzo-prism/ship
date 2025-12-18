@@ -322,34 +322,64 @@ export function ShippingHeatmap({
   }, [bestDayKey]);
 
   const statsBadge = (
-    <div className="flex flex-wrap items-center gap-2">
-      {loading ? (
-        <>
-          <Skeleton className="h-5 w-24 rounded-full" />
-          <Skeleton className="h-5 w-24 rounded-full" />
-          <Skeleton className="h-5 w-24 rounded-full" />
-          <Skeleton className="h-5 w-32 rounded-full" />
-        </>
-      ) : (
-        <>
-          <Badge variant="secondary">
-            {totalCommits} {pluralize(totalCommits, "commit")}
-          </Badge>
-          <Badge variant="secondary">
-            {activeDays} active {pluralize(activeDays, "day")}
-          </Badge>
-          <Badge variant="secondary">
-            {currentStreak}d streak
-          </Badge>
-          <Badge variant="secondary">
-            Best:{" "}
-            {bestDayCount > 0 && bestDayDate
-              ? `${bestDayCount} on ${bestDayFormatter.format(bestDayDate)}`
-              : "—"}
-          </Badge>
-        </>
-      )}
-    </div>
+    <TooltipProvider>
+      <div className="flex flex-wrap items-center gap-2">
+        {loading ? (
+          <>
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-5 w-32 rounded-full" />
+          </>
+        ) : (
+          <>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
+                  {totalCommits} {pluralize(totalCommits, "commit")}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                Total updates shipped in this time range.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
+                  {activeDays} active {pluralize(activeDays, "day")}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                Days with at least one update.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
+                  {currentStreak}d streak
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                Days in a row with updates, ending on the latest day shown.
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge variant="secondary" className="cursor-help transition-colors hover:bg-secondary/80">
+                  Best:{" "}
+                  {bestDayCount > 0 && bestDayDate
+                    ? `${bestDayCount} on ${bestDayFormatter.format(bestDayDate)}`
+                    : "—"}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center">
+                The single day with the most updates.
+              </TooltipContent>
+            </Tooltip>
+          </>
+        )}
+      </div>
+    </TooltipProvider>
   );
 
   const skeletonWeeks = React.useMemo(
@@ -366,9 +396,6 @@ export function ShippingHeatmap({
         <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
             <CardTitle>Shipping heatmap</CardTitle>
-            <CardDescription>
-              Daily commit volume for the current filters.
-            </CardDescription>
           </div>
           {statsBadge}
         </div>
