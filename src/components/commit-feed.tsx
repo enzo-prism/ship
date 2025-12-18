@@ -7,6 +7,7 @@ import type { DateRange } from "react-day-picker";
 import { CalendarIcon, Check, ChevronsUpDown, ExternalLink } from "lucide-react";
 
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { ProjectIcon } from "@/components/project-icon";
 import { ShippingHeatmap } from "@/components/shipping-heatmap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -364,12 +365,15 @@ export function CommitFeed() {
                               setRepoOpen(false);
                             }}
                           >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedRepo === opt.value ? "opacity-100" : "opacity-0",
-                              )}
-                            />
+                            <span className="mr-2 inline-flex w-4 justify-center">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4",
+                                  selectedRepo === opt.value ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                            </span>
+                            <ProjectIcon repo={opt.value} className="h-4 w-4" />
                             <span className="truncate">{opt.label}</span>
                           </CommandItem>
                         ))}
@@ -406,12 +410,15 @@ export function CommitFeed() {
                               setRepoOpen(false);
                             }}
                           >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                selectedRepo === opt.value ? "opacity-100" : "opacity-0",
-                              )}
-                            />
+                            <span className="mr-2 inline-flex w-4 justify-center">
+                              <Check
+                                className={cn(
+                                  "h-4 w-4",
+                                  selectedRepo === opt.value ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                            </span>
+                            <ProjectIcon repo={opt.value} className="h-4 w-4" />
                             <span className="truncate">{opt.label}</span>
                           </CommandItem>
                         ))}
@@ -552,6 +559,7 @@ export function CommitFeed() {
                 </div>
               </div>
               <Badge variant="secondary" className="shrink-0">
+                <ProjectIcon repo={commit.repo} className="h-3 w-3 text-muted-foreground" />
                 {repoDisplayName(commit.repo)}
               </Badge>
             </button>
