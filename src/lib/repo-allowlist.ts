@@ -10,7 +10,10 @@ export const REPO_ALLOWLIST = [
   "enzo-prism/DrNjo",
   "enzo-prism/wine-country-root-canal",
   "enzo-prism/Family-First-Smile-Care",
-  "enzo-prism/saorsa-2",
+  "enzo-prism/infobell-it-2",
+  "enzo-prism/matisse",
+  "enzo-prism/philippine-athletics",
+  "enzo-prism/saorsa-3",
 ] as const;
 
 export type AllowedRepo = (typeof REPO_ALLOWLIST)[number];
@@ -27,7 +30,10 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
   "drnjo": "Dental Strategies",
   "wine-country-root-canal": "Wine Country Root Canal",
   "family-first-smile-care": "Family First Smile Care",
-  "saorsa-2": "Saorsa Growth Partners",
+  "infobell-it-2": "Infobell IT",
+  "matisse": "Matisse",
+  "philippine-athletics": "Philippine Athletics",
+  "saorsa-3": "Saorsa Growth Partners",
 };
 
 export function isAllowedRepo(value: string): value is AllowedRepo {
