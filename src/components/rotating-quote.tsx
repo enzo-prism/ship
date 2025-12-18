@@ -213,6 +213,10 @@ const QUOTES: Quote[] = [
     author: "Steve Jobs",
   },
   {
+    text: "Design is not just what it looks like and feels like. Design is how it works.",
+    author: "Steve Jobs",
+  },
+  {
     text: "Failure is an option here. If things are not failing, you are not innovating enough.",
     author: "Elon Musk",
   },
