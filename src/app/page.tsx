@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+
 import { CommitFeed } from "@/components/commit-feed";
 import { HeroVideo } from "@/components/hero-video";
 
@@ -15,7 +17,15 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <CommitFeed />
+          <Suspense
+            fallback={
+              <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+                Loading commits...
+              </div>
+            }
+          >
+            <CommitFeed />
+          </Suspense>
         </div>
       </main>
     </div>
