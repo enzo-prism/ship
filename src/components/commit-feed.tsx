@@ -82,9 +82,6 @@ export function CommitFeed() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
 
-  const customFromTime = customRange?.from?.getTime() ?? null;
-  const customToTime = customRange?.to?.getTime() ?? null;
-
   const requestQuery = React.useMemo(() => {
     const params = new URLSearchParams();
     params.set("repo", selectedRepo);
@@ -99,7 +96,7 @@ export function CommitFeed() {
     }
 
     return params.toString();
-  }, [selectedRepo, rangeMode, customFromTime, customToTime]);
+  }, [selectedRepo, rangeMode, customRange?.from, customRange?.to]);
 
   React.useEffect(() => {
     const controller = new AbortController();
