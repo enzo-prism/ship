@@ -2,9 +2,11 @@
 
 import * as React from "react";
 import { addDays, differenceInCalendarDays, format, startOfDay } from "date-fns";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { CalendarIcon, Check, ChevronsUpDown, ExternalLink } from "lucide-react";
 
+import { CopyLinkButton } from "@/components/copy-link-button";
 import { ShippingHeatmap } from "@/components/shipping-heatmap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,11 +26,103 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import { REPO_ALLOWLIST, repoDisplayName } from "@/lib/repo-allowlist";
+import { MAX_RANGE_DAYS } from "@/lib/date-range";
+import { isAllowedRepo, REPO_ALLOWLIST, repoDisplayName } from "@/lib/repo-allowlist";
 import type { CommitItem } from "@/lib/types";
 
-type RangePreset = "7" | "30" | "60";
+const RANGE_PRESET_OPTIONS = [
+  { value: "7", label: "7d", days: 7 },
+  { value: "30", label: "30d", days: 30 },
+  { value: "60", label: "60d", days: 60 },
+  { value: "365", label: "1y", days: MAX_RANGE_DAYS },
+] as const;
+
+const DEFAULT_RANGE_VALUE = RANGE_PRESET_OPTIONS[0].value;
+const COMMIT_LIST_LIMIT = 1000;
+const commitCountFormatter = new Intl.NumberFormat();
+
+type RangePreset = (typeof RANGE_PRESET_OPTIONS)[number]["value"];
 type RangeMode = RangePreset | "custom";
+
+function isRangePreset(value: string): value is RangePreset {
+  return RANGE_PRESET_OPTIONS.some((option) => option.value === value);
+}
+
+function parseYmdToLocalDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const yyyy = Number(match[1]);
+  const mm = Number(match[2]);
+  const dd = Number(match[3]);
+  if (!yyyy || !mm || !dd) return null;
+  const date = new Date(yyyy, mm - 1, dd);
+  if (
+    date.getFullYear() !== yyyy ||
+    date.getMonth() !== mm - 1 ||
+    date.getDate() !== dd
+  ) {
+    return null;
+  }
+  return date;
+}
+
+type ParsedFilters = {
+  selectedRepo: string;
+  rangeMode: RangeMode;
+  customRange?: DateRange;
+};
+
+type SearchParamsLike = Pick<URLSearchParams, "get">;
+
+function parseFiltersFromSearchParams(params: SearchParamsLike): ParsedFilters {
+  const repoParam = params.get("repo")?.trim() ?? "";
+  const selectedRepo = repoParam === "all" || isAllowedRepo(repoParam) ? repoParam : "all";
+
+  const sinceParam = params.get("since")?.trim();
+  const untilParam = params.get("until")?.trim();
+
+  if (sinceParam && untilParam) {
+    const sinceDate = parseYmdToLocalDate(sinceParam);
+    const untilDate = parseYmdToLocalDate(untilParam);
+
+    if (sinceDate && untilDate) {
+      const [from, to] =
+        sinceDate.getTime() <= untilDate.getTime() ? [sinceDate, untilDate] : [untilDate, sinceDate];
+      const daysInclusive = differenceInCalendarDays(to, from) + 1;
+      if (daysInclusive >= 1 && daysInclusive <= MAX_RANGE_DAYS) {
+        return { selectedRepo, rangeMode: "custom", customRange: { from, to } };
+      }
+    }
+  }
+
+  const rangeParam = params.get("range")?.trim() ?? "";
+  if (rangeParam && isRangePreset(rangeParam)) {
+    return { selectedRepo, rangeMode: rangeParam };
+  }
+
+  return { selectedRepo, rangeMode: DEFAULT_RANGE_VALUE };
+}
+
+function buildShareQuery(options: {
+  selectedRepo: string;
+  rangeMode: RangeMode;
+  customRange?: DateRange;
+}) {
+  const params = new URLSearchParams();
+  params.set("repo", options.selectedRepo);
+
+  if (options.rangeMode === "custom" && options.customRange?.from) {
+    const from = options.customRange.from;
+    const to = options.customRange.to ?? options.customRange.from;
+    params.set("since", format(from, "yyyy-MM-dd"));
+    params.set("until", format(to, "yyyy-MM-dd"));
+  } else {
+    const rangeValue = isRangePreset(options.rangeMode) ? options.rangeMode : DEFAULT_RANGE_VALUE;
+    params.set("range", rangeValue);
+  }
+
+  return params.toString();
+}
 
 function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(
@@ -60,6 +154,10 @@ function CommitListSkeleton() {
 }
 
 export function CommitFeed() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const repoOptions = React.useMemo(
     () => [
       { value: "all", label: "All projects" },
@@ -68,11 +166,20 @@ export function CommitFeed() {
     [],
   );
 
-  const [repoOpen, setRepoOpen] = React.useState(false);
-  const [selectedRepo, setSelectedRepo] = React.useState<string>("all");
+  const initialFiltersRef = React.useRef<ParsedFilters | null>(null);
+  if (!initialFiltersRef.current) {
+    initialFiltersRef.current = parseFiltersFromSearchParams(searchParams);
+  }
 
-  const [rangeMode, setRangeMode] = React.useState<RangeMode>("7");
-  const [customRange, setCustomRange] = React.useState<DateRange | undefined>(undefined);
+  const initialFilters = initialFiltersRef.current!;
+
+  const [repoOpen, setRepoOpen] = React.useState(false);
+  const [selectedRepo, setSelectedRepo] = React.useState<string>(initialFilters.selectedRepo);
+
+  const [rangeMode, setRangeMode] = React.useState<RangeMode>(initialFilters.rangeMode);
+  const [customRange, setCustomRange] = React.useState<DateRange | undefined>(
+    initialFilters.customRange,
+  );
   const [customOpen, setCustomOpen] = React.useState(false);
   const [rangeError, setRangeError] = React.useState<string | null>(null);
 
@@ -81,25 +188,26 @@ export function CommitFeed() {
   const [commits, setCommits] = React.useState<CommitItem[]>([]);
   const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
   const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
+  const [dataTruncated, setDataTruncated] = React.useState(false);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
 
-  const requestQuery = React.useMemo(() => {
-    const params = new URLSearchParams();
-    params.set("repo", selectedRepo);
+  const shareQuery = React.useMemo(
+    () => buildShareQuery({ selectedRepo, rangeMode, customRange }),
+    [selectedRepo, rangeMode, customRange],
+  );
 
-    if (rangeMode === "custom" && customRange?.from) {
-      const from = customRange.from;
-      const to = customRange.to ?? customRange.from;
-      params.set("since", format(from, "yyyy-MM-dd"));
-      params.set("until", format(to, "yyyy-MM-dd"));
-    } else {
-      params.set("range", rangeMode);
-    }
+  const sharePath = React.useMemo(
+    () => (shareQuery ? `${pathname}?${shareQuery}` : pathname),
+    [pathname, shareQuery],
+  );
 
-    return params.toString();
-  }, [selectedRepo, rangeMode, customRange?.from, customRange?.to]);
+  React.useEffect(() => {
+    const currentQuery = window.location.search.replace(/^\?/, "");
+    if (currentQuery === shareQuery) return;
+    router.replace(sharePath, { scroll: false });
+  }, [router, sharePath, shareQuery]);
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -109,12 +217,14 @@ export function CommitFeed() {
       setError(null);
       setAuthMode(null);
       setRepoFailures(null);
+      setDataTruncated(false);
       try {
-        const res = await fetch(`/api/commits?${requestQuery}`, { signal: controller.signal });
+        const res = await fetch(`/api/commits?${shareQuery}`, { signal: controller.signal });
         const auth = res.headers.get("X-Ship-Auth");
         if (auth === "token" || auth === "none") setAuthMode(auth);
         const failures = res.headers.get("X-Ship-Repo-Failures");
         if (failures && Number.isFinite(Number(failures))) setRepoFailures(Number(failures));
+        setDataTruncated(res.headers.get("X-Ship-Truncated") === "1");
 
         const data = (await res.json()) as CommitItem[] | { error?: string };
         if (!res.ok) {
@@ -137,7 +247,7 @@ export function CommitFeed() {
 
     void run();
     return () => controller.abort();
-  }, [requestQuery]);
+  }, [shareQuery]);
 
   function openCommit(commit: CommitItem) {
     setSelectedCommit(commit);
@@ -156,9 +266,9 @@ export function CommitFeed() {
     const to = range.to ?? range.from;
     const daysInclusive = differenceInCalendarDays(to, from) + 1;
 
-    if (daysInclusive > 60) {
-      setRangeError("Max custom range is 60 days.");
-      setCustomRange({ from, to: addDays(from, 59) });
+    if (daysInclusive > MAX_RANGE_DAYS) {
+      setRangeError(`Max custom range is ${MAX_RANGE_DAYS} days.`);
+      setCustomRange({ from, to: addDays(from, MAX_RANGE_DAYS - 1) });
       setRangeMode("custom");
       setCustomOpen(false);
       return;
@@ -187,11 +297,16 @@ export function CommitFeed() {
       return { rangeStart: from, rangeEnd: to };
     }
 
-    const presetDays = rangeMode === "7" ? 7 : rangeMode === "30" ? 30 : rangeMode === "60" ? 60 : 7;
+    const presetDays =
+      RANGE_PRESET_OPTIONS.find((option) => option.value === rangeMode)?.days ??
+      RANGE_PRESET_OPTIONS[0].days;
     const end = startOfDay(new Date());
     const start = addDays(end, -(presetDays - 1));
     return { rangeStart: start, rangeEnd: end };
   }, [customRange?.from, customRange?.to, rangeMode]);
+
+  const commitOverflow = commits.length > COMMIT_LIST_LIMIT;
+  const visibleCommits = commitOverflow ? commits.slice(0, COMMIT_LIST_LIMIT) : commits;
 
   return (
     <div className="space-y-4">
@@ -246,12 +361,14 @@ export function CommitFeed() {
                 variant="outline"
                 value={rangeMode === "custom" ? "" : rangeMode}
                 onValueChange={(value) => {
-                  if (value === "7" || value === "30" || value === "60") setRangeMode(value);
+                  if (isRangePreset(value)) setRangeMode(value);
                 }}
               >
-                <ToggleGroupItem value="7">7d</ToggleGroupItem>
-                <ToggleGroupItem value="30">30d</ToggleGroupItem>
-                <ToggleGroupItem value="60">60d</ToggleGroupItem>
+                {RANGE_PRESET_OPTIONS.map((option) => (
+                  <ToggleGroupItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
               </ToggleGroup>
 
               <Popover open={customOpen} onOpenChange={setCustomOpen}>
@@ -277,7 +394,7 @@ export function CommitFeed() {
                       <p className="mt-2 text-sm text-destructive">{rangeError}</p>
                     ) : (
                       <p className="mt-2 text-sm text-muted-foreground">
-                        Max range: 60 days.
+                        Max range: {MAX_RANGE_DAYS} days.
                       </p>
                     )}
                     <div className="mt-3 flex items-center justify-between">
@@ -287,7 +404,7 @@ export function CommitFeed() {
                         onClick={() => {
                           setCustomRange(undefined);
                           setRangeError(null);
-                          setRangeMode("7");
+                          setRangeMode(RANGE_PRESET_OPTIONS[0].value);
                           setCustomOpen(false);
                         }}
                       >
@@ -303,8 +420,11 @@ export function CommitFeed() {
             </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            {loading ? "Loading…" : `${commits.length} commit${commits.length === 1 ? "" : "s"}`}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>
+              {loading ? "Loading…" : `${commits.length} commit${commits.length === 1 ? "" : "s"}`}
+            </span>
+            <CopyLinkButton path={sharePath} />
           </div>
         </div>
       </div>
@@ -317,7 +437,7 @@ export function CommitFeed() {
         loading={loading}
       />
 
-      {authMode === "none" || repoFailures ? (
+      {authMode === "none" || repoFailures || dataTruncated ? (
         <div className="rounded-lg border bg-card px-4 py-3 text-sm text-muted-foreground">
           {authMode === "none" ? (
             <p>
@@ -328,6 +448,12 @@ export function CommitFeed() {
           {repoFailures ? (
             <p className={cn(authMode === "none" && "mt-2")}>
               Some projects couldn’t be loaded ({repoFailures}). Showing available commits.
+            </p>
+          ) : null}
+          {dataTruncated ? (
+            <p className={cn((authMode === "none" || repoFailures) && "mt-2")}>
+              Commit history may be incomplete for this range. Narrow the range or filter to a
+              single project for full results.
             </p>
           ) : null}
         </div>
@@ -346,7 +472,14 @@ export function CommitFeed() {
         </div>
       ) : (
         <div className="rounded-lg border bg-card">
-          {commits.map((commit, idx) => (
+          {commitOverflow ? (
+            <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+              Showing latest {commitCountFormatter.format(COMMIT_LIST_LIMIT)} of{" "}
+              {commitCountFormatter.format(commits.length)} commits. Narrow the range to see
+              older items.
+            </div>
+          ) : null}
+          {visibleCommits.map((commit, idx) => (
             <button
               key={`${commit.repo}:${commit.sha}`}
               type="button"

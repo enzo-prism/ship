@@ -47,11 +47,16 @@ npm run start
 
 Query params:
 - `repo=all` (default) or `repo=enzo-prism/<repo>` (must be in the allowlist)
-- Either `range=7|30|60` (default: `7`) or `since=YYYY-MM-DD&until=YYYY-MM-DD` (max span: 60 days)
+- Either `range=7|30|60|365` (default: `7`) or `since=YYYY-MM-DD&until=YYYY-MM-DD` (max span: 365 days)
 
 Examples:
 - `/api/commits?repo=all&range=7`
+- `/api/commits?repo=all&range=365`
 - `/api/commits?repo=enzo-prism/pti&since=2025-01-01&until=2025-01-31`
+
+Notes:
+- Long ranges may return partial history due to GitHub API pagination limits.
+- The commit feed renders up to 1,000 most recent commits; narrow the range to see older entries.
 
 Response:
 ```json
@@ -74,4 +79,3 @@ Response:
 - Deploy
 
 This app caches GitHub API calls (revalidate ~60 seconds) to avoid calling GitHub on every request.
-

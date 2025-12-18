@@ -1,5 +1,9 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+export const RANGE_PRESET_DAYS = [7, 30, 60, 365] as const;
+export type RangePresetDays = (typeof RANGE_PRESET_DAYS)[number];
+export const MAX_RANGE_DAYS = RANGE_PRESET_DAYS[RANGE_PRESET_DAYS.length - 1];
+
 type ParsedYmd = {
   midnightUtc: Date;
 };
@@ -19,18 +23,29 @@ function parseYyyyMmDd(value: string): ParsedYmd | null {
   return { midnightUtc };
 }
 
+function startOfUtcDay(date: Date) {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
 export type DateRangeResult =
   | {
       ok: true;
       sinceIso: string;
       untilIso: string;
+      daysInclusive: number;
     }
   | { ok: false; error: string };
 
-export function buildDateRangeFromPreset(days: 7 | 30 | 60): DateRangeResult {
-  const now = new Date();
-  const since = new Date(now.getTime() - days * DAY_MS);
-  return { ok: true, sinceIso: since.toISOString(), untilIso: now.toISOString() };
+export function buildDateRangeFromPreset(days: RangePresetDays): DateRangeResult {
+  const todayUtc = startOfUtcDay(new Date());
+  const sinceMidnight = new Date(todayUtc.getTime() - (days - 1) * DAY_MS);
+  const untilEndOfDay = new Date(todayUtc.getTime() + DAY_MS - 1);
+  return {
+    ok: true,
+    sinceIso: sinceMidnight.toISOString(),
+    untilIso: untilEndOfDay.toISOString(),
+    daysInclusive: days,
+  };
 }
 
 export function buildDateRangeFromYmd(
@@ -58,6 +73,6 @@ export function buildDateRangeFromYmd(
     ok: true,
     sinceIso: sinceMidnight.toISOString(),
     untilIso: untilEndOfDay.toISOString(),
+    daysInclusive,
   };
 }
-

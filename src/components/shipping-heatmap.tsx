@@ -54,6 +54,10 @@ const dayLabelFormatter = new Intl.DateTimeFormat(undefined, {
   year: "numeric",
 });
 
+const monthLabelFormatter = new Intl.DateTimeFormat(undefined, {
+  month: "short",
+});
+
 const bestDayFormatter = new Intl.DateTimeFormat(undefined, {
   month: "short",
   day: "numeric",
@@ -77,6 +81,10 @@ function pluralize(count: number, singular: string, plural = `${singular}s`) {
 
 function formatDayLabel(date: Date) {
   return dayLabelFormatter.format(date);
+}
+
+function formatMonthLabel(date: Date) {
+  return monthLabelFormatter.format(date);
 }
 
 function parseYmdToLocalDate(value: string) {
@@ -136,12 +144,24 @@ function HeatmapLegend({ className }: { className?: string }) {
 
 function HeatmapSkeleton({
   weeks,
+  monthLabels,
 }: {
   weeks: Array<Array<{ inRange: boolean; dayKey: string }>>;
+  monthLabels: Array<string | null>;
 }) {
   return (
     <div className="overflow-x-auto">
       <div className="min-w-max pb-2">
+        <div
+          className="mb-1 grid grid-flow-col auto-cols-max gap-1 text-[10px] leading-none text-muted-foreground"
+          aria-hidden="true"
+        >
+          {monthLabels.map((label, idx) => (
+            <div key={`skeleton-month:${weeks[idx]?.[0]?.dayKey ?? idx}`} className="h-4 w-3 overflow-visible">
+              {label ? <span className="block whitespace-nowrap">{label}</span> : null}
+            </div>
+          ))}
+        </div>
         <div className="grid grid-flow-col auto-cols-max gap-1" aria-hidden="true">
           {weeks.map((week) => (
             <div key={week[0]?.dayKey} className="grid grid-rows-7 gap-1">
@@ -244,13 +264,14 @@ export function ShippingHeatmap({
     };
   }, [dayCounts]);
 
-  const { weeks, gridStartKey } = React.useMemo(() => {
+  const { weeks, gridStartKey, monthLabels } = React.useMemo(() => {
     const gridStart = startOfWeek(rangeStartDay, { weekStartsOn: 1 });
     const gridEnd = endOfWeek(rangeEndDay, { weekStartsOn: 1 });
     const daySpan = differenceInCalendarDays(gridEnd, gridStart) + 1;
     const weekCount = Math.max(1, Math.ceil(daySpan / 7));
 
     const weekColumns: HeatmapCell[][] = [];
+    const labels: Array<string | null> = [];
     for (let w = 0; w < weekCount; w++) {
       const weekStart = addDays(gridStart, w * 7);
       const days: HeatmapCell[] = [];
@@ -275,10 +296,24 @@ export function ShippingHeatmap({
 
         days.push({ date, dayKey, inRange, count, topRepos });
       }
+
+      let label: string | null = null;
+      const monthStart = days.find((day) => day.date.getDate() === 1);
+      if (monthStart) {
+        label = formatMonthLabel(monthStart.date);
+      } else if (w === 0) {
+        label = formatMonthLabel(rangeStartDay);
+      }
+      labels.push(label);
+
       weekColumns.push(days);
     }
 
-    return { weeks: weekColumns, gridStartKey: format(gridStart, "yyyy-MM-dd") };
+    return {
+      weeks: weekColumns,
+      gridStartKey: format(gridStart, "yyyy-MM-dd"),
+      monthLabels: labels,
+    };
   }, [dayCounts, perDayRepoCounts, rangeEndDay, rangeEndKey, rangeStartDay, rangeStartKey, selectedRepo]);
 
   const bestDayDate = React.useMemo(() => {
@@ -346,11 +381,21 @@ export function ShippingHeatmap({
 
       <CardContent className="space-y-3">
         {loading ? (
-          <HeatmapSkeleton weeks={skeletonWeeks} />
+          <HeatmapSkeleton weeks={skeletonWeeks} monthLabels={monthLabels} />
         ) : (
           <TooltipProvider>
             <div className="overflow-x-auto">
               <div className="min-w-max pb-2">
+                <div
+                  className="mb-1 grid grid-flow-col auto-cols-max gap-1 text-[10px] leading-none text-muted-foreground"
+                  aria-hidden="true"
+                >
+                  {monthLabels.map((label, idx) => (
+                    <div key={`${gridStartKey}:month:${idx}`} className="h-4 w-3 overflow-visible">
+                      {label ? <span className="block whitespace-nowrap">{label}</span> : null}
+                    </div>
+                  ))}
+                </div>
                 <div
                   role="grid"
                   aria-label="Shipping heatmap"
@@ -436,4 +481,3 @@ export function ShippingHeatmap({
     </Card>
   );
 }
-

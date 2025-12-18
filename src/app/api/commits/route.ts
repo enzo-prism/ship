@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { buildDateRangeFromPreset, buildDateRangeFromYmd } from "@/lib/date-range";
+import {
+  buildDateRangeFromPreset,
+  buildDateRangeFromYmd,
+  MAX_RANGE_DAYS,
+  RANGE_PRESET_DAYS,
+  type RangePresetDays,
+} from "@/lib/date-range";
 import {
   isAllowedRepo,
   REPO_ALLOWLIST,
@@ -58,20 +64,25 @@ export async function GET(req: Request) {
 
   let dateRangeResult;
   if (rangeParam) {
-    if (rangeParam !== "7" && rangeParam !== "30" && rangeParam !== "60") {
-      return jsonError(400, "Invalid `range`. Must be 7, 30, or 60.");
+    const rangeDays = Number(rangeParam);
+    if (
+      !Number.isFinite(rangeDays) ||
+      !RANGE_PRESET_DAYS.includes(rangeDays as RangePresetDays)
+    ) {
+      return jsonError(400, "Invalid `range`. Must be 7, 30, 60, or 365.");
     }
-    dateRangeResult = buildDateRangeFromPreset(Number(rangeParam) as 7 | 30 | 60);
+    dateRangeResult = buildDateRangeFromPreset(rangeDays as RangePresetDays);
   } else if (sinceParam || untilParam) {
     if (!sinceParam || !untilParam) {
       return jsonError(400, "When using custom dates, provide both `since` and `until`.");
     }
-    dateRangeResult = buildDateRangeFromYmd(sinceParam, untilParam, 60);
+    dateRangeResult = buildDateRangeFromYmd(sinceParam, untilParam, MAX_RANGE_DAYS);
   } else {
-    dateRangeResult = buildDateRangeFromPreset(7);
+    dateRangeResult = buildDateRangeFromPreset(RANGE_PRESET_DAYS[0]);
   }
 
   if (!dateRangeResult.ok) return jsonError(400, dateRangeResult.error);
+  const rangeDays = dateRangeResult.daysInclusive;
 
   let repos: AllowedRepo[];
   const isAllProjects = repoParam === "all";
@@ -88,7 +99,17 @@ export async function GET(req: Request) {
     const hasToken = Boolean(token);
     const revalidateSeconds = hasToken ? 60 : 900;
     const concurrency = isAllProjects ? (hasToken ? 4 : 2) : 1;
-    const maxPages = !hasToken && isAllProjects ? 1 : 3;
+    const maxPages = hasToken
+      ? rangeDays >= MAX_RANGE_DAYS
+        ? 8
+        : rangeDays >= 180
+          ? 6
+          : rangeDays >= 90
+            ? 4
+            : 3
+      : isAllProjects
+        ? 1
+        : 2;
 
     const repoFailures: Array<{ repo: AllowedRepo; status?: number; message: string }> = [];
     const perRepo = await mapWithConcurrency(repos, concurrency, async (repo) => {
@@ -109,27 +130,31 @@ export async function GET(req: Request) {
           if (err.status === 401) throw err;
           if (err.status === 403 && /rate limit/i.test(err.message)) throw err;
           repoFailures.push({ repo, status: err.status, message: err.message });
-          return [];
+          return { commits: [], truncated: false };
         }
 
         const message = err instanceof Error ? err.message : "Unknown error";
         repoFailures.push({ repo, message });
-        return [];
+        return { commits: [], truncated: false };
       }
     });
 
-    const commits = perRepo.flat();
+    const commits = perRepo.flatMap((entry) => entry.commits);
+    const truncated = perRepo.some((entry) => entry.truncated);
     commits.sort(
       (a, b) => new Date(b.committedAt).getTime() - new Date(a.committedAt).getTime(),
     );
+
+    const isPartial = (isAllProjects && repoFailures.length > 0) || truncated;
 
     return NextResponse.json<CommitItem[]>(commits, {
       headers: {
         "Cache-Control": `s-maxage=${hasToken ? 60 : 900}, stale-while-revalidate=${hasToken ? 300 : 900}`,
         "X-Ship-Auth": hasToken ? "token" : "none",
+        ...(isPartial ? { "X-Ship-Partial": "1" } : {}),
+        ...(truncated ? { "X-Ship-Truncated": "1" } : {}),
         ...(isAllProjects && repoFailures.length > 0
           ? {
-              "X-Ship-Partial": "1",
               "X-Ship-Repo-Failures": String(repoFailures.length),
             }
           : {}),

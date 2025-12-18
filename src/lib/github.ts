@@ -23,6 +23,7 @@ export class GitHubApiError extends Error {
 }
 
 export type GitHubAuthMode = "token" | "none";
+export type CommitListResult = { commits: CommitItem[]; truncated: boolean };
 
 function splitCommitMessage(message: string) {
   const lines = message.split(/\r?\n/);
@@ -55,13 +56,14 @@ export async function listCommitsForRepo(options: {
   maxPages?: number;
   revalidateSeconds?: number;
   token?: string | null;
-}): Promise<CommitItem[]> {
+}): Promise<CommitListResult> {
   const token = options.token ?? readGitHubTokenFromEnv();
   const perPage = options.perPage ?? 100;
   const maxPages = options.maxPages ?? 3;
   const revalidateSeconds = options.revalidateSeconds ?? 60;
 
   const commits: CommitItem[] = [];
+  let truncated = false;
   for (let page = 1; page <= maxPages; page++) {
     const url = new URL(`https://api.github.com/repos/${options.repo}/commits`);
     url.searchParams.set("sha", "main");
@@ -107,7 +109,8 @@ export async function listCommitsForRepo(options: {
     }
 
     if (data.length < perPage) break;
+    if (page === maxPages) truncated = true;
   }
 
-  return commits;
+  return { commits, truncated };
 }
