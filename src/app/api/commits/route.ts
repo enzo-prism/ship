@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   buildDateRangeFromPreset,
   buildDateRangeFromYmd,
+  DEFAULT_RANGE_DAYS,
   MAX_RANGE_DAYS,
   RANGE_PRESET_DAYS,
   type RangePresetDays,
@@ -78,7 +79,7 @@ export async function GET(req: Request) {
     }
     dateRangeResult = buildDateRangeFromYmd(sinceParam, untilParam, MAX_RANGE_DAYS);
   } else {
-    dateRangeResult = buildDateRangeFromPreset(RANGE_PRESET_DAYS[0]);
+    dateRangeResult = buildDateRangeFromPreset(DEFAULT_RANGE_DAYS);
   }
 
   if (!dateRangeResult.ok) return jsonError(400, dateRangeResult.error);

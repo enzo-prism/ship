@@ -47,7 +47,7 @@ npm run start
 
 Query params:
 - `repo=all` (default) or `repo=enzo-prism/<repo>` (must be in the allowlist)
-- Either `range=7|30|60|365` (default: `7`) or `since=YYYY-MM-DD&until=YYYY-MM-DD` (max span: 365 days)
+- Either `range=7|30|60|365` (default: `365`) or `since=YYYY-MM-DD&until=YYYY-MM-DD` (max span: 365 days)
 
 Examples:
 - `/api/commits?repo=all&range=7`

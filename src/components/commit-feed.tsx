@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
-import { MAX_RANGE_DAYS } from "@/lib/date-range";
+import { DEFAULT_RANGE_DAYS, MAX_RANGE_DAYS } from "@/lib/date-range";
 import { isAllowedRepo, REPO_ALLOWLIST, repoDisplayName } from "@/lib/repo-allowlist";
 import type { CommitItem } from "@/lib/types";
 
@@ -37,7 +37,9 @@ const RANGE_PRESET_OPTIONS = [
   { value: "365", label: "1y", days: MAX_RANGE_DAYS },
 ] as const;
 
-const DEFAULT_RANGE_VALUE = RANGE_PRESET_OPTIONS[0].value;
+const DEFAULT_RANGE_VALUE =
+  RANGE_PRESET_OPTIONS.find((option) => option.days === DEFAULT_RANGE_DAYS)?.value ??
+  RANGE_PRESET_OPTIONS[RANGE_PRESET_OPTIONS.length - 1].value;
 const COMMIT_LIST_LIMIT = 1000;
 const commitCountFormatter = new Intl.NumberFormat();
 
@@ -299,7 +301,7 @@ export function CommitFeed() {
 
     const presetDays =
       RANGE_PRESET_OPTIONS.find((option) => option.value === rangeMode)?.days ??
-      RANGE_PRESET_OPTIONS[0].days;
+      DEFAULT_RANGE_DAYS;
     const end = startOfDay(new Date());
     const start = addDays(end, -(presetDays - 1));
     return { rangeStart: start, rangeEnd: end };
@@ -404,7 +406,7 @@ export function CommitFeed() {
                         onClick={() => {
                           setCustomRange(undefined);
                           setRangeError(null);
-                          setRangeMode(RANGE_PRESET_OPTIONS[0].value);
+                          setRangeMode(DEFAULT_RANGE_VALUE);
                           setCustomOpen(false);
                         }}
                       >

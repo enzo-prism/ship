@@ -3,6 +3,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const RANGE_PRESET_DAYS = [7, 30, 60, 365] as const;
 export type RangePresetDays = (typeof RANGE_PRESET_DAYS)[number];
 export const MAX_RANGE_DAYS = RANGE_PRESET_DAYS[RANGE_PRESET_DAYS.length - 1];
+export const DEFAULT_RANGE_DAYS = MAX_RANGE_DAYS;
 
 type ParsedYmd = {
   midnightUtc: Date;
