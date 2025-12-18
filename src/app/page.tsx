@@ -5,7 +5,6 @@ import { HeroVideo } from "@/components/hero-video";
 import { RotatingQuote } from "@/components/rotating-quote";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Home() {
   return (
@@ -16,36 +15,30 @@ export default function Home() {
           <RotatingQuote />
           <HeroVideo />
           <div className="flex items-end justify-between gap-6">
-            <div className="flex items-start gap-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <a
-                      href="https://enzosison.com/education"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 inline-flex"
-                    >
-                      <Avatar className="h-8 w-8 border border-border/60 transition hover:scale-[1.03] hover:border-border">
-                        <AvatarImage
-                          src="https://res.cloudinary.com/dhqpqfw6w/image/upload/v1766089226/Enzo_Avatar_isiqzl.webp"
-                          alt="Enzo Sison"
-                        />
-                        <AvatarFallback>EN</AvatarFallback>
-                      </Avatar>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" align="start">
-                    enzo sison founder of prism
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex flex-col gap-3">
               <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Engineering Tracker</h1>
                 <p className="text-sm text-muted-foreground">
                   We ship new code for clients 24hrs a day, 7 days a week.
                 </p>
               </div>
+              <a
+                href="https://enzosison.com/education"
+                target="_blank"
+                rel="noreferrer"
+                className="group inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <Avatar className="h-8 w-8 border border-border/60 transition group-hover:scale-[1.03] group-hover:border-border">
+                  <AvatarImage
+                    src="https://res.cloudinary.com/dhqpqfw6w/image/upload/v1766089226/Enzo_Avatar_isiqzl.webp"
+                    alt="Enzo Sison"
+                  />
+                  <AvatarFallback>EN</AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium transition-colors group-hover:text-foreground">
+                  made by enzo
+                </span>
+              </a>
             </div>
           </div>
           <Suspense
