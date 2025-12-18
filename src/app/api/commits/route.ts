@@ -17,7 +17,7 @@ import type { CommitsResponse, DayRepoCount } from "@/lib/types";
 
 type ApiError = { error: string };
 
-const FEED_LIMIT = 300;
+const FEED_LIMIT = 50;
 
 function toDayKey(iso: string, tzOffsetMinutes: number) {
   const date = new Date(iso);

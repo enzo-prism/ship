@@ -363,12 +363,15 @@ export function CommitFeed() {
                     <ChevronsUpDown className="h-4 w-4 opacity-60" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="top-16 max-h-[80vh] translate-y-0 p-0">
+                <DialogContent
+                  className="top-16 max-h-[80vh] translate-y-0 p-0"
+                  onOpenAutoFocus={(event) => event.preventDefault()}
+                >
                   <DialogHeader className="px-4 pt-4 text-left">
                     <DialogTitle className="text-sm font-medium">Select project</DialogTitle>
                   </DialogHeader>
                   <Command className="rounded-none border-t">
-                    <CommandInput placeholder="Search projects…" autoFocus />
+                    <CommandInput placeholder="Search projects…" />
                     <CommandList className="max-h-[60vh]">
                       <CommandEmpty>No projects found.</CommandEmpty>
                       <CommandGroup>

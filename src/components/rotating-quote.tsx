@@ -46,7 +46,7 @@ const QUOTES: Quote[] = [
   },
   {
     text: "Through discipline comes freedom.",
-    author: "Aristotle (attributed)",
+    author: "Aristotle",
   },
   {
     text: "The harder the conflict, the greater the triumph.",
@@ -86,11 +86,11 @@ const QUOTES: Quote[] = [
   },
   {
     text: "Patience is bitter, but its fruit is sweet.",
-    author: "Aristotle (ancient Greek proverb, attributed)",
+    author: "Aristotle",
   },
   {
     text: "Little by little, one travels far.",
-    author: "J. R. R. Tolkien (based on ancient wisdom)",
+    author: "J. R. R. Tolkien",
   },
   {
     text: "The fire tests gold; adversity tests men.",
@@ -98,7 +98,7 @@ const QUOTES: Quote[] = [
   },
   {
     text: "He who would learn to fly one day must first learn to walk and run.",
-    author: "Nietzsche (inspired by classical proverb tradition)",
+    author: "Nietzsche",
   },
   {
     text: "Dig the well before you are thirsty.",
@@ -166,7 +166,7 @@ const QUOTES: Quote[] = [
   },
   {
     text: "Suffering is temporary. Quitting lasts forever.",
-    author: "Lance Armstrong (quote stands, regardless of legacy)",
+    author: "Lance Armstrong",
   },
   {
     text: "To give anything less than your best is to sacrifice the gift.",
@@ -226,7 +226,7 @@ const QUOTES: Quote[] = [
   },
   {
     text: "When you find an idea that you just can't stop thinking about, that's probably a good one to pursue.",
-    author: "Josh James (Omniture)",
+    author: "Josh James",
   },
   {
     text: "Success is a lousy teacher. It seduces smart people into thinking they can't lose.",
