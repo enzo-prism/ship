@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { CommitFeed } from "@/components/commit-feed";
 import { HeroVideo } from "@/components/hero-video";
 import { RotatingQuote } from "@/components/rotating-quote";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -10,6 +11,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto w-full max-w-5xl px-4 py-10 md:px-6">
+        <ScrollToTop />
         <div className="space-y-8">
           <RotatingQuote />
           <HeroVideo />
