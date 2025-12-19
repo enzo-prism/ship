@@ -14,6 +14,8 @@ const REPO_EMOJI_MAP: Record<string, string> = {
   "matisse": "🏃🏽‍♀️",
   "philippine-athletics": "🇵🇭",
   "saorsa-3": "🌱",
+  "listwin-ventures": "💼",
+  "ambergris-support-spark": "☀️",
 };
 
 export function emojiForRepo(repo: string) {
