@@ -261,18 +261,6 @@ const QUOTES: Quote[] = [
     author: "Napoleon Hill",
   },
   {
-    text: "You can make more friends in two months by becoming interested in other people than in two years by trying to get other people interested in you.",
-    author: "Dale Carnegie",
-  },
-  {
-    text: "Any fool can criticize, condemn, and complain - and most fools do.",
-    author: "Dale Carnegie",
-  },
-  {
-    text: "Talk to someone about themselves and they'll listen for hours.",
-    author: "Dale Carnegie",
-  },
-  {
     text: "The key is not to prioritize what's on your schedule, but to schedule your priorities.",
     author: "Stephen R. Covey",
   },
