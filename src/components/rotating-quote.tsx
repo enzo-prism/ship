@@ -282,7 +282,7 @@ const QUOTES: Quote[] = [
   },
 ];
 
-const ROTATE_INTERVAL_MS = 12000;
+const ROTATE_INTERVAL_MS = 8000;
 const FADE_DURATION_MS = 350;
 
 function shuffleQuotes(items: Quote[]) {
