@@ -253,6 +253,114 @@ const QUOTES: Quote[] = [
     author: "Walt Disney",
   },
   {
+    text: "Whatever the mind can conceive and believe, it can achieve.",
+    author: "Napoleon Hill",
+  },
+  {
+    text: "Strength and growth come only through continuous effort and struggle.",
+    author: "Napoleon Hill",
+  },
+  {
+    text: "You can make more friends in two months by becoming interested in other people than in two years by trying to get other people interested in you.",
+    author: "Dale Carnegie",
+  },
+  {
+    text: "Any fool can criticize, condemn, and complain - and most fools do.",
+    author: "Dale Carnegie",
+  },
+  {
+    text: "Talk to someone about themselves and they'll listen for hours.",
+    author: "Dale Carnegie",
+  },
+  {
+    text: "The key is not to prioritize what's on your schedule, but to schedule your priorities.",
+    author: "Stephen R. Covey",
+  },
+  {
+    text: "Most people do not listen with the intent to understand; they listen with the intent to reply.",
+    author: "Stephen R. Covey",
+  },
+  {
+    text: "Where focus goes, energy flows.",
+    author: "Tony Robbins",
+  },
+  {
+    text: "It is in your moments of decision that your destiny is shaped.",
+    author: "Tony Robbins",
+  },
+  {
+    text: "Setting goals is the first step in turning the invisible into the visible.",
+    author: "Tony Robbins",
+  },
+  {
+    text: "You do not rise to the level of your goals. You fall to the level of your systems.",
+    author: "James Clear",
+  },
+  {
+    text: "Every action you take is a vote for the type of person you wish to become.",
+    author: "James Clear",
+  },
+  {
+    text: "Habits are the compound interest of self-improvement.",
+    author: "James Clear",
+  },
+  {
+    text: "When we are no longer able to change a situation, we are challenged to change ourselves.",
+    author: "Viktor Frankl",
+  },
+  {
+    text: "Those who have a 'why' to live, can bear with almost any 'how.'",
+    author: "Viktor Frankl",
+  },
+  {
+    text: "Between stimulus and response there is a space. In that space is our power to choose our response.",
+    author: "Viktor Frankl",
+  },
+  {
+    text: "Compare yourself to who you were yesterday, not to who someone else is today.",
+    author: "Jordan Peterson",
+  },
+  {
+    text: "Pursue what is meaningful, not what is expedient.",
+    author: "Jordan Peterson",
+  },
+  {
+    text: "Set your house in perfect order before you criticize the world.",
+    author: "Jordan Peterson",
+  },
+  {
+    text: "Power is a game, and in games you do not judge your opponents by their intentions but by the effects of their actions.",
+    author: "Robert Greene",
+  },
+  {
+    text: "Never assume that the person you are dealing with is weaker or less important than you are.",
+    author: "Robert Greene",
+  },
+  {
+    text: "Learn to keep people dependent on you.",
+    author: "Robert Greene",
+  },
+  {
+    text: "Clarity about what matters provides clarity about what does not.",
+    author: "Cal Newport",
+  },
+  {
+    text: "Deep work is the ability to focus without distraction on a cognitively demanding task.",
+    author: "Cal Newport",
+  },
+  {
+    text: "If you don't produce, you won't thrive - no matter how skilled or talented you are.",
+    author: "Cal Newport",
+  },
+  {
+    text: "Realize deeply that the present moment is all you ever have.",
+    author: "Eckhart Tolle",
+  },
+  {
+    text: "Whatever the present moment contains, accept it as if you had chosen it.",
+    author: "Eckhart Tolle",
+  },
+  {
     text: "You are in danger of living a life so comfortable and soft that you will die without ever realizing your true potential.",
     author: "David Goggins",
   },
