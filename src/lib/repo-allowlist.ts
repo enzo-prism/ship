@@ -16,7 +16,7 @@ export const REPO_ALLOWLIST = [
   "enzo-prism/saorsa-3",
   "enzo-prism/listwin-ventures",
   "enzo-prism/ambergris-support-spark",
-  "olympicbootworks-retail/olympicbootworks-retail",
+  "enzo-prism/olympicbootworks-retail",
 ] as const;
 
 export type AllowedRepo = (typeof REPO_ALLOWLIST)[number];
