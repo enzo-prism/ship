@@ -16,6 +16,7 @@ const REPO_EMOJI_MAP: Record<string, string> = {
   "saorsa-3": "🌱",
   "listwin-ventures": "💼",
   "ambergris-support-spark": "☀️",
+  "olympicbootworks-retail": "🎿",
 };
 
 export function emojiForRepo(repo: string) {
