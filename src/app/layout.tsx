@@ -55,6 +55,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider>{children}</ThemeProvider>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-CQ4TDNFMBJ"
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-CQ4TDNFMBJ');`}
+        </Script>
         <Script id="hotjar" strategy="afterInteractive">
           {`(function(h,o,t,j,a,r){
     h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
