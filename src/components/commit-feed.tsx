@@ -672,7 +672,7 @@ export function CommitFeed() {
                   <span>{formatDateTime(selectedCommit.committedAt)}</span>
                 </div>
 
-                <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap rounded-md border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
+                <pre className="max-h-[50vh] overflow-auto whitespace-pre-wrap break-words rounded-md border bg-muted/30 p-3 font-mono text-xs leading-5 text-foreground">
                   {getFullMessage(selectedCommit)}
                 </pre>
 
