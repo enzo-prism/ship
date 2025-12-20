@@ -376,6 +376,158 @@ const QUOTES: Quote[] = [
     text: "Success is rented, not owned. And rent is due every day.",
     author: "Rory Vaden",
   },
+  {
+    text: "If it was easy, everyone would do it.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Your excuses don't matter. Your output does.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Average is the enemy.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Confidence comes from proof, not belief.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Focus is about saying no.",
+    author: "Steve Jobs",
+  },
+  {
+    text: "Real artists ship.",
+    author: "Steve Jobs",
+  },
+  {
+    text: "Stay hungry. Stay foolish.",
+    author: "Steve Jobs",
+  },
+  {
+    text: "Great companies are built on great products.",
+    author: "Elon Musk",
+  },
+  {
+    text: "Work like hell.",
+    author: "Elon Musk",
+  },
+  {
+    text: "There is no shortcut.",
+    author: "Jensen Huang",
+  },
+  {
+    text: "You don't learn without pain.",
+    author: "Jensen Huang",
+  },
+  {
+    text: "Greatness is not intelligence. It's character.",
+    author: "Jensen Huang",
+  },
+  {
+    text: "Run toward problems.",
+    author: "Jensen Huang",
+  },
+  {
+    text: "It's always Day 1.",
+    author: "Jeff Bezos",
+  },
+  {
+    text: "Obsess over customers, not competitors.",
+    author: "Jeff Bezos",
+  },
+  {
+    text: "We are stubborn on vision, flexible on details.",
+    author: "Jeff Bezos",
+  },
+  {
+    text: "If you double the number of experiments, you double your inventiveness.",
+    author: "Jeff Bezos",
+  },
+  {
+    text: "Imagination is more important than knowledge.",
+    author: "Albert Einstein",
+  },
+  {
+    text: "And yet it moves.",
+    author: "Galileo Galilei",
+  },
+  {
+    text: "It is not the strongest who survive, but the most adaptable.",
+    author: "Charles Darwin",
+  },
+  {
+    text: "The present is theirs; the future is mine.",
+    author: "Nikola Tesla",
+  },
+  {
+    text: "I can accept failure. I can't accept not trying.",
+    author: "Michael Jordan",
+  },
+  {
+    text: "I hated every minute of training, but I said, don't quit.",
+    author: "Muhammad Ali",
+  },
+  {
+    text: "I trained four years to run nine seconds.",
+    author: "Usain Bolt",
+  },
+  {
+    text: "Everything negative - pressure, challenges - is an opportunity.",
+    author: "Kobe Bryant",
+  },
+  {
+    text: "To be successful, you have to be selfish.",
+    author: "Tom Brady",
+  },
+  {
+    text: "I don't like to lose - at anything.",
+    author: "Serena Williams",
+  },
+  {
+    text: "If you don't lose, you can't enjoy the victories.",
+    author: "Rafael Nadal",
+  },
+  {
+    text: "You miss 100% of the shots you don't take.",
+    author: "Wayne Gretzky",
+  },
+  {
+    text: "You can't put a limit on anything.",
+    author: "Michael Phelps",
+  },
+  {
+    text: "You have to fight to reach your dream.",
+    author: "Lionel Messi",
+  },
+  {
+    text: "Aim to build something 10x better.",
+    author: "Larry Page",
+  },
+  {
+    text: "Solve important problems.",
+    author: "Sergey Brin",
+  },
+  {
+    text: "Competition is for losers.",
+    author: "Peter Thiel",
+  },
+  {
+    text: "Freedom and responsibility.",
+    author: "Reed Hastings",
+  },
+  {
+    text: "Software is eating the world.",
+    author: "Marc Andreessen",
+  },
+  {
+    text: "Compound progress.",
+    author: "Sam Altman",
+  },
+  {
+    text: "Make something people want.",
+    author: "Paul Graham",
+  },
 ];
 
 const ROTATE_INTERVAL_MS = 8000;
