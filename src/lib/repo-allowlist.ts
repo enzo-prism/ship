@@ -41,7 +41,7 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
   "listwin-ventures": "Listwin Ventures",
   "ambergris-support-spark": "Belize Kids",
   "olympicbootworks-retail": "Olympic Bootworks",
-  "ship": "🚢 ship",
+  "ship": "ship",
 };
 
 export function isAllowedRepo(value: string): value is AllowedRepo {
