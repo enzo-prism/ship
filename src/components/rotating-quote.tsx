@@ -425,25 +425,25 @@ export function RotatingQuote({ className }: { className?: string }) {
   const current = quotes[index];
 
   return (
-    <Card className={cn("border-border/60 bg-muted/30 shadow-sm", className)}>
-      <CardContent className="p-4">
+    <Card className={cn("border-0 bg-background shadow-none", className)}>
+      <CardContent className="px-0 py-2">
         {current ? (
           <>
             <p
               className={cn(
-                "text-sm text-muted-foreground transition-opacity duration-300",
+                "text-sm leading-relaxed text-muted-foreground/80 transition-opacity duration-300",
                 isFading && "opacity-0",
               )}
             >
               "{current.text}"{" "}
-              <span className="whitespace-nowrap text-xs text-muted-foreground/80">
+              <span className="whitespace-nowrap text-xs text-muted-foreground/60">
                 - {current.author}
               </span>
             </p>
-            <div className="relative mt-3 h-px w-full overflow-hidden bg-border/60" aria-hidden="true">
+            <div className="relative mt-2 h-px w-full overflow-hidden bg-border/40" aria-hidden="true">
               <div
                 key={index}
-                className="absolute inset-0 origin-left bg-foreground/25 quote-progress"
+                className="absolute inset-0 origin-left bg-foreground/20 quote-progress"
                 style={
                   {
                     "--quote-progress-duration": `${ROTATE_INTERVAL_MS}ms`,
