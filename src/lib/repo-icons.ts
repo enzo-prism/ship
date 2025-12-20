@@ -18,6 +18,7 @@ const REPO_EMOJI_MAP: Record<string, string> = {
   "ambergris-support-spark": "☀️",
   "olympicbootworks-retail": "🎿",
   "ship": "🚢",
+  "grace-dental": "🦷",
 };
 
 export function emojiForRepo(repo: string) {

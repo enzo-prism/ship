@@ -18,6 +18,7 @@ export const REPO_ALLOWLIST = [
   "enzo-prism/ambergris-support-spark",
   "enzo-prism/olympicbootworks-retail",
   "enzo-prism/ship",
+  "enzo-prism/grace-dental",
 ] as const;
 
 export type AllowedRepo = (typeof REPO_ALLOWLIST)[number];
@@ -42,6 +43,7 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
   "ambergris-support-spark": "Belize Kids",
   "olympicbootworks-retail": "Olympic Bootworks",
   "ship": "ship",
+  "grace-dental": "Grace Dental",
 };
 
 export function isAllowedRepo(value: string): value is AllowedRepo {
