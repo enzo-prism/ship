@@ -186,7 +186,6 @@ export async function GET(req: Request) {
           if (repoMap) {
             topRepos = Array.from(repoMap.entries())
               .sort((a, b) => b[1] - a[1])
-              .slice(0, 2)
               .map(([repo, repoCount]) => ({ repo, count: repoCount }));
           }
         }

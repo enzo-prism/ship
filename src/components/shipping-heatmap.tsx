@@ -490,7 +490,7 @@ export function ShippingHeatmap({
 
                         const topReposLabel =
                           selectedRepo === "all" && cell.topRepos.length > 0
-                            ? ` Top repos: ${cell.topRepos
+                            ? ` Projects: ${cell.topRepos
                                 .map((r) => `${repoDisplayName(r.repo)} ${r.count}`)
                                 .join(", ")}.`
                             : "";
@@ -514,10 +514,10 @@ export function ShippingHeatmap({
                                 )}
                               />
                             </TooltipTrigger>
-                            <TooltipContent side="top" align="center" className="max-w-[260px]">
+                            <TooltipContent side="top" align="center" className="max-w-[320px]">
                               <div className="font-medium text-foreground">{tooltipTitle}</div>
                               {selectedRepo === "all" && cell.topRepos.length > 0 ? (
-                                <div className="mt-1 space-y-0.5 text-muted-foreground">
+                                <div className="mt-1 max-h-40 space-y-0.5 overflow-y-auto pr-1 text-muted-foreground">
                                   {cell.topRepos.map((repo) => (
                                     <div key={repo.repo}>
                                       {repoDisplayName(repo.repo)}: {repo.count}

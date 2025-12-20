@@ -48,6 +48,8 @@ const DEFAULT_RANGE_VALUE =
   RANGE_PRESET_OPTIONS[RANGE_PRESET_OPTIONS.length - 1].value;
 const commitCountFormatter = new Intl.NumberFormat();
 const DEFAULT_PAGE_SIZE = 50;
+const TOKEN_REFRESH_MS = 60_000;
+const NO_TOKEN_REFRESH_MS = 900_000;
 
 type RangePreset = (typeof RANGE_PRESET_OPTIONS)[number]["value"];
 type RangeMode = RangePreset | "custom";
@@ -86,6 +88,29 @@ function parseYmdToLocalDate(value: string) {
     return null;
   }
   return date;
+}
+
+function parseCacheControlSeconds(value: string | null) {
+  if (!value) return null;
+  const sMaxAgeMatch = /s-maxage=(\d+)/.exec(value);
+  if (sMaxAgeMatch) {
+    const seconds = Number(sMaxAgeMatch[1]);
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+  const maxAgeMatch = /max-age=(\d+)/.exec(value);
+  if (maxAgeMatch) {
+    const seconds = Number(maxAgeMatch[1]);
+    return Number.isFinite(seconds) ? seconds : null;
+  }
+  return null;
+}
+
+function resolveRefreshMs(cacheControl: string | null, authMode: "token" | "none" | null) {
+  const seconds = parseCacheControlSeconds(cacheControl);
+  if (seconds && seconds > 0) return seconds * 1000;
+  if (authMode === "token") return TOKEN_REFRESH_MS;
+  if (authMode === "none") return NO_TOKEN_REFRESH_MS;
+  return null;
 }
 
 type ParsedFilters = {
@@ -200,6 +225,9 @@ export function CommitFeed() {
 
   const initialFiltersRef = React.useRef<ParsedFilters | null>(null);
   const didInitRef = React.useRef(false);
+  const abortRef = React.useRef<AbortController | null>(null);
+  const inFlightRef = React.useRef(false);
+  const requestIdRef = React.useRef(0);
   if (!initialFiltersRef.current) {
     initialFiltersRef.current = parseFiltersFromSearchParams(searchParams);
   }
@@ -225,6 +253,7 @@ export function CommitFeed() {
   const [totalCommits, setTotalCommits] = React.useState(0);
   const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
   const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
+  const [refreshMs, setRefreshMs] = React.useState<number | null>(null);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
@@ -252,29 +281,62 @@ export function CommitFeed() {
     router.replace(sharePath, { scroll: false });
   }, [router, sharePath, shareQuery]);
 
-  React.useEffect(() => {
-    const controller = new AbortController();
+  const loadCommits = React.useCallback(
+    async ({ mode }: { mode: "full" | "refresh" }) => {
+      if (mode === "refresh" && inFlightRef.current) return;
 
-    async function run() {
-      setLoading(true);
-      setError(null);
-      setAuthMode(null);
-      setRepoFailures(null);
+      const requestId = (requestIdRef.current += 1);
+      if (mode === "full") {
+        abortRef.current?.abort();
+        setLoading(true);
+        setError(null);
+        setAuthMode(null);
+        setRepoFailures(null);
+      }
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+      inFlightRef.current = true;
+
       try {
         const res = await fetch(`/api/commits?${apiQuery}`, { signal: controller.signal });
-        const auth = res.headers.get("X-Ship-Auth");
-        if (auth === "token" || auth === "none") setAuthMode(auth);
-        const failures = res.headers.get("X-Ship-Repo-Failures");
-        if (failures && Number.isFinite(Number(failures))) setRepoFailures(Number(failures));
+        const authHeader = res.headers.get("X-Ship-Auth");
+        const nextAuthMode =
+          authHeader === "token" || authHeader === "none" ? authHeader : null;
+        const failuresHeader = res.headers.get("X-Ship-Repo-Failures");
+        const nextRepoFailures =
+          failuresHeader && Number.isFinite(Number(failuresHeader))
+            ? Number(failuresHeader)
+            : null;
+        const nextRefreshMs = resolveRefreshMs(
+          res.headers.get("Cache-Control"),
+          nextAuthMode,
+        );
 
         const data = (await res.json()) as CommitsResponse | { error?: string };
+        if (requestId !== requestIdRef.current) return;
+
+        if (nextAuthMode) setAuthMode(nextAuthMode);
+        if (nextRefreshMs) setRefreshMs(nextRefreshMs);
+
         if (!res.ok) {
           const message =
             typeof (data as { error?: string }).error === "string"
               ? (data as { error: string }).error
               : "Failed to load commits.";
-          throw new Error(message);
+          if (mode === "full") {
+            setCommits([]);
+            setDailySummaries([]);
+            setTotalCommits(0);
+            setTotalPages(1);
+            setError(message);
+          }
+          return;
         }
+
+        setError(null);
+        setRepoFailures(nextRepoFailures);
+
         if ("commits" in data && Array.isArray(data.commits)) {
           setCommits(data.commits);
           setDailySummaries(Array.isArray(data.dailySummaries) ? data.dailySummaries : []);
@@ -290,7 +352,7 @@ export function CommitFeed() {
           if (Number.isFinite(data.page) && data.page !== page) {
             setPage(data.page);
           }
-        } else {
+        } else if (mode === "full") {
           setCommits([]);
           setDailySummaries([]);
           setTotalCommits(0);
@@ -298,20 +360,68 @@ export function CommitFeed() {
         }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
+        if (requestId !== requestIdRef.current) return;
         const message = err instanceof Error ? err.message : "Failed to load commits.";
-        setCommits([]);
-        setDailySummaries([]);
-        setTotalCommits(0);
-        setTotalPages(1);
-        setError(message);
+        if (mode === "full") {
+          setCommits([]);
+          setDailySummaries([]);
+          setTotalCommits(0);
+          setTotalPages(1);
+          setError(message);
+        }
       } finally {
-        setLoading(false);
+        if (requestId === requestIdRef.current) {
+          inFlightRef.current = false;
+          if (mode === "full") setLoading(false);
+        }
       }
+    },
+    [apiQuery, page],
+  );
+
+  React.useEffect(() => {
+    void loadCommits({ mode: "full" });
+    return () => abortRef.current?.abort();
+  }, [loadCommits]);
+
+  React.useEffect(() => {
+    if (!refreshMs || refreshMs <= 0) return;
+
+    let intervalId: number | null = null;
+    const startInterval = () => {
+      if (intervalId) window.clearInterval(intervalId);
+      intervalId = window.setInterval(() => {
+        if (document.visibilityState !== "visible") return;
+        void loadCommits({ mode: "refresh" });
+      }, refreshMs);
+    };
+    const stopInterval = () => {
+      if (!intervalId) return;
+      window.clearInterval(intervalId);
+      intervalId = null;
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        void loadCommits({ mode: "refresh" });
+        startInterval();
+      } else {
+        stopInterval();
+      }
+    };
+
+    if (document.visibilityState === "visible") {
+      startInterval();
     }
 
-    void run();
-    return () => controller.abort();
-  }, [apiQuery]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    return () => {
+      stopInterval();
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [loadCommits, refreshMs]);
 
   function openCommit(commit: CommitItem) {
     setSelectedCommit(commit);
