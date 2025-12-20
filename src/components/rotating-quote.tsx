@@ -369,6 +369,14 @@ const QUOTES: Quote[] = [
     author: "Naval",
   },
   {
+    text: "Become the best in the world at what you do. Keep redefining what you do until this is true.",
+    author: "Naval",
+  },
+  {
+    text: "Pick an industry where you can play long term games with long term people.",
+    author: "Naval",
+  },
+  {
     text: "Play iterated games. All the returns in life, whether in wealth, relationships, or knowledge, come from compound interest.",
     author: "Naval",
   },
