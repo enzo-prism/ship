@@ -369,6 +369,26 @@ const QUOTES: Quote[] = [
     author: "Naval",
   },
   {
+    text: "Play iterated games. All the returns in life, whether in wealth, relationships, or knowledge, come from compound interest.",
+    author: "Naval",
+  },
+  {
+    text: "Pick business partners with high intelligence, energy, and, above all, integrity.",
+    author: "Naval",
+  },
+  {
+    text: "Arm yourself with specific knowledge, accountability, and leverage.",
+    author: "Naval",
+  },
+  {
+    text: "Code and media are permissionless leverage. They're the leverage behind the newly rich. You can create software and media that works for you while you sleep.",
+    author: "Naval",
+  },
+  {
+    text: "Give me a lever long enough, and a place to stand, and I will move the earth.",
+    author: "Archimedes",
+  },
+  {
     text: "When something is important enough, you do it even if the odds are not in your favor.",
     author: "Elon",
   },
