@@ -112,6 +112,17 @@ function resolveRefreshMs(cacheControl: string | null, authMode: "token" | "none
   return null;
 }
 
+function formatUpdatedLabel(lastUpdatedAt: Date, now: Date) {
+  const diffMs = now.getTime() - lastUpdatedAt.getTime();
+  if (!Number.isFinite(diffMs) || diffMs < 0) return "Updated just now";
+  const diffMinutes = Math.floor(diffMs / 60_000);
+  if (diffMinutes < 1) return "Updated just now";
+  if (diffMinutes < 60) return `Updated ${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `Updated ${diffHours}h ago`;
+  return `Updated ${format(lastUpdatedAt, "MMM d")}`;
+}
+
 type ParsedFilters = {
   selectedRepo: string;
   rangeMode: RangeMode;
@@ -253,6 +264,11 @@ export function CommitFeed() {
   const [authMode, setAuthMode] = React.useState<"token" | "none" | null>(null);
   const [repoFailures, setRepoFailures] = React.useState<number | null>(null);
   const [refreshMs, setRefreshMs] = React.useState<number | null>(null);
+  const [refreshStatus, setRefreshStatus] = React.useState<"idle" | "refreshing" | "success" | "error">(
+    "idle",
+  );
+  const [lastUpdatedAt, setLastUpdatedAt] = React.useState<Date | null>(null);
+  const [now, setNow] = React.useState(() => new Date());
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [selectedCommit, setSelectedCommit] = React.useState<CommitItem | null>(null);
@@ -275,6 +291,13 @@ export function CommitFeed() {
   );
 
   React.useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  React.useEffect(() => {
     const currentQuery = window.location.search.replace(/^\?/, "");
     if (currentQuery === shareQuery) return;
     router.replace(sharePath, { scroll: false });
@@ -285,6 +308,7 @@ export function CommitFeed() {
       if (mode === "refresh" && inFlightRef.current) return;
 
       const requestId = (requestIdRef.current += 1);
+      let requestStatus: "success" | "error" | null = null;
       if (mode === "full") {
         abortRef.current?.abort();
         setLoading(true);
@@ -292,6 +316,7 @@ export function CommitFeed() {
         setAuthMode(null);
         setRepoFailures(null);
       }
+      setRefreshStatus("refreshing");
 
       const controller = new AbortController();
       abortRef.current = controller;
@@ -323,6 +348,7 @@ export function CommitFeed() {
             typeof (data as { error?: string }).error === "string"
               ? (data as { error: string }).error
               : "Failed to load commits.";
+          requestStatus = "error";
           if (mode === "full") {
             setCommits([]);
             setDailySummaries([]);
@@ -357,10 +383,12 @@ export function CommitFeed() {
           setTotalCommits(0);
           setTotalPages(1);
         }
+        requestStatus = "success";
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         if (requestId !== requestIdRef.current) return;
         const message = err instanceof Error ? err.message : "Failed to load commits.";
+        requestStatus = "error";
         if (mode === "full") {
           setCommits([]);
           setDailySummaries([]);
@@ -372,6 +400,14 @@ export function CommitFeed() {
         if (requestId === requestIdRef.current) {
           inFlightRef.current = false;
           if (mode === "full") setLoading(false);
+          if (requestStatus) {
+            setRefreshStatus(requestStatus);
+            if (requestStatus === "success") {
+              const updatedAt = new Date();
+              setLastUpdatedAt(updatedAt);
+              setNow(updatedAt);
+            }
+          }
         }
       }
     },
@@ -430,6 +466,15 @@ export function CommitFeed() {
       window.removeEventListener("focus", handleVisibility);
     };
   }, [loadCommits, refreshMs]);
+
+  const isRefreshing = loading || refreshStatus === "refreshing";
+  const refreshLabel = React.useMemo(() => {
+    if (loading) return "Loading…";
+    if (refreshStatus === "refreshing") return "Refreshing…";
+    if (refreshStatus === "error") return "Refresh failed";
+    if (lastUpdatedAt) return formatUpdatedLabel(lastUpdatedAt, now);
+    return null;
+  }, [lastUpdatedAt, loading, now, refreshStatus]);
 
   function openCommit(commit: CommitItem) {
     setSelectedCommit(commit);
@@ -664,17 +709,37 @@ export function CommitFeed() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-end gap-2">
+            {refreshLabel ? (
+              <span
+                className={cn(
+                  "text-[11px] text-muted-foreground/70",
+                  refreshStatus === "error" && "text-destructive/70",
+                )}
+              >
+                {refreshLabel}
+              </span>
+            ) : null}
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               className="h-8 w-8 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               onClick={handleManualRefresh}
-              disabled={loading}
-              aria-label="Refresh commits"
+              disabled={isRefreshing}
+              aria-label={refreshStatus === "error" ? "Refresh failed. Retry." : "Refresh commits"}
+              title={
+                lastUpdatedAt
+                  ? `Last updated ${format(lastUpdatedAt, "PP p")}`
+                  : "Refresh commits"
+              }
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw
+                className={cn(
+                  "h-3.5 w-3.5",
+                  isRefreshing && "animate-spin text-muted-foreground",
+                )}
+              />
             </Button>
           </div>
         </div>
