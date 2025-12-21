@@ -291,9 +291,7 @@ export function ShippingHeatmap({
     return total;
   }, [dayCounts, totalCommits]);
 
-  const { activeDays, currentStreak, bestDayKey, bestDayCount } = React.useMemo(() => {
-    const active = dayCounts.size;
-
+  const { currentStreak, bestDayKey, bestDayCount } = React.useMemo(() => {
     let streak = 0;
     for (
       let cursor = rangeEndDay;
@@ -319,7 +317,6 @@ export function ShippingHeatmap({
     }
 
     return {
-      activeDays: active,
       currentStreak: streak,
       bestDayKey: bestKey,
       bestDayCount: bestCount,
@@ -400,10 +397,6 @@ export function ShippingHeatmap({
             <StatBadge
               label={`${totalCommitsInRange} ${pluralize(totalCommitsInRange, "commit")}`}
               description="Total updates shipped in this time range."
-            />
-            <StatBadge
-              label={`${activeDays} active ${pluralize(activeDays, "day")}`}
-              description="Days with at least one update."
             />
             <StatBadge
               label={`${currentStreak}d streak`}
