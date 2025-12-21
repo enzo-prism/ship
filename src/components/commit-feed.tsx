@@ -46,7 +46,6 @@ const RANGE_PRESET_OPTIONS = [
 const DEFAULT_RANGE_VALUE =
   RANGE_PRESET_OPTIONS.find((option) => option.days === DEFAULT_RANGE_DAYS)?.value ??
   RANGE_PRESET_OPTIONS[RANGE_PRESET_OPTIONS.length - 1].value;
-const commitCountFormatter = new Intl.NumberFormat();
 const DEFAULT_PAGE_SIZE = 50;
 const TOKEN_REFRESH_MS = 60_000;
 const NO_TOKEN_REFRESH_MS = 900_000;
@@ -665,9 +664,7 @@ export function CommitFeed() {
           </div>
 
           <div className="text-sm text-muted-foreground">
-            {loading
-              ? "Loading…"
-              : `${commitCountFormatter.format(totalCommits)} commit${totalCommits === 1 ? "" : "s"}`}
+            {loading ? "Loading…" : null}
           </div>
         </div>
       </div>
