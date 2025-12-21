@@ -4,7 +4,7 @@ import * as React from "react";
 import { addDays, differenceInCalendarDays, format, startOfDay } from "date-fns";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
-import { CalendarIcon, Check, ChevronsUpDown, ExternalLink } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, ExternalLink, RefreshCw } from "lucide-react";
 
 import { ProjectIcon } from "@/components/project-icon";
 import { ShippingHeatmap } from "@/components/shipping-heatmap";
@@ -378,18 +378,19 @@ export function CommitFeed() {
     [apiQuery, page],
   );
 
+  const handleManualRefresh = React.useCallback(() => {
+    void loadCommits({ mode: "refresh" });
+  }, [loadCommits]);
+
   React.useEffect(() => {
     void loadCommits({ mode: "full" });
     return () => abortRef.current?.abort();
   }, [loadCommits]);
 
   React.useEffect(() => {
-    const handleManualRefresh = () => {
-      void loadCommits({ mode: "refresh" });
-    };
     window.addEventListener("ship:refresh-commits", handleManualRefresh);
     return () => window.removeEventListener("ship:refresh-commits", handleManualRefresh);
-  }, [loadCommits]);
+  }, [handleManualRefresh]);
 
   React.useEffect(() => {
     if (!refreshMs || refreshMs <= 0) return;
@@ -663,8 +664,18 @@ export function CommitFeed() {
             </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            {loading ? "Loading…" : null}
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="h-8 w-8 text-muted-foreground hover:bg-muted/40 hover:text-foreground"
+              onClick={handleManualRefresh}
+              disabled={loading}
+              aria-label="Refresh commits"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </div>
