@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { CommitFeed } from "@/components/commit-feed";
+import { CommitRefreshButton } from "@/components/commit-refresh-button";
 import { HeroVideo } from "@/components/hero-video";
 import { RotatingQuote } from "@/components/rotating-quote";
 import { ScrollToTop } from "@/components/scroll-to-top";
@@ -54,6 +55,8 @@ export default function Home() {
           <footer className="pt-2">
             <div className="flex items-center justify-center">
               <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/80 px-3 py-2 text-xs text-muted-foreground shadow-sm">
+                <CommitRefreshButton />
+                <span className="h-4 w-px bg-border/60" aria-hidden="true" />
                 <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground/70">
                   Theme
                 </span>

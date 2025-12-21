@@ -385,6 +385,14 @@ export function CommitFeed() {
   }, [loadCommits]);
 
   React.useEffect(() => {
+    const handleManualRefresh = () => {
+      void loadCommits({ mode: "refresh" });
+    };
+    window.addEventListener("ship:refresh-commits", handleManualRefresh);
+    return () => window.removeEventListener("ship:refresh-commits", handleManualRefresh);
+  }, [loadCommits]);
+
+  React.useEffect(() => {
     if (!refreshMs || refreshMs <= 0) return;
 
     let intervalId: number | null = null;

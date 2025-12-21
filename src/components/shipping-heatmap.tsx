@@ -88,6 +88,13 @@ function formatMonthLabel(date: Date) {
   return monthLabelFormatter.format(date);
 }
 
+function resolveSummaryCount(summary: DailySummary, selectedRepo: string) {
+  if (selectedRepo === "all") return summary.count;
+  if (summary.topRepos.length === 0) return summary.count;
+  const repoMatch = summary.topRepos.find((repo) => repo.repo === selectedRepo);
+  return repoMatch?.count ?? 0;
+}
+
 function parseYmdToLocalDate(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return null;
@@ -269,12 +276,13 @@ export function ShippingHeatmap({
 
     for (const summary of dailySummaries) {
       if (summary.dayKey < rangeStartKey || summary.dayKey > rangeEndKey) continue;
-      counts.set(summary.dayKey, summary.count);
+      const count = resolveSummaryCount(summary, selectedRepo);
+      if (count > 0) counts.set(summary.dayKey, count);
       summaries.set(summary.dayKey, summary);
     }
 
     return { dayCounts: counts, summariesByDay: summaries };
-  }, [dailySummaries, rangeStartKey, rangeEndKey]);
+  }, [dailySummaries, rangeStartKey, rangeEndKey, selectedRepo]);
 
   const totalCommitsInRange = React.useMemo(() => {
     if (totalCommits > 0) return totalCommits;
@@ -287,9 +295,13 @@ export function ShippingHeatmap({
     const active = dayCounts.size;
 
     let streak = 0;
-    for (let cursor = rangeEndDay; cursor.getTime() >= rangeStartDay.getTime(); cursor = addDays(cursor, -1)) {
+    for (
+      let cursor = rangeEndDay;
+      cursor.getTime() >= rangeStartDay.getTime();
+      cursor = addDays(cursor, -1)
+    ) {
       const key = format(cursor, "yyyy-MM-dd");
-      if ((dayCounts.get(key) ?? 0) === 0) break;
+      if (!dayCounts.has(key)) break;
       streak++;
     }
 
@@ -342,7 +354,7 @@ export function ShippingHeatmap({
         const inRange = dayKey >= rangeStartKey && dayKey <= rangeEndKey;
 
         const summary = summariesByDay.get(dayKey);
-        const count = inRange ? (summary?.count ?? 0) : 0;
+        const count = inRange ? (dayCounts.get(dayKey) ?? 0) : 0;
         const topRepos: DayRepoCount[] =
           inRange && selectedRepo === "all" ? summary?.topRepos ?? [] : [];
 
