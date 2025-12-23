@@ -393,18 +393,6 @@ const QUOTES: Quote[] = [
     author: "Jordan Peterson",
   },
   {
-    text: "Power is a game, and in games you do not judge your opponents by their intentions but by the effects of their actions.",
-    author: "Robert Greene",
-  },
-  {
-    text: "Never assume that the person you are dealing with is weaker or less important than you are.",
-    author: "Robert Greene",
-  },
-  {
-    text: "Learn to keep people dependent on you.",
-    author: "Robert Greene",
-  },
-  {
     text: "Clarity about what matters provides clarity about what does not.",
     author: "Cal Newport",
   },
