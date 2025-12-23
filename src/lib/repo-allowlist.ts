@@ -1,6 +1,5 @@
 export const REPO_ALLOWLIST = [
   "enzo-prism/exquisite-dentistry",
-  "enzo-prism/prism-website",
   "enzo-prism/pti",
   "enzo-prism/age-boldly-vibrantly",
   "enzo-prism/leadership-retreat",
@@ -27,7 +26,6 @@ const DISPLAY_NAME_OVERRIDES: Record<string, string> = {
   "exquisite-dentistry": "Exquisite Dentistry",
   "leadership-retreat": "Leadership Retreat",
   "canary-foundation": "Canary Foundation",
-  "prism-website": "Prism",
   "pti": "PTI",
   "chris-dentist": "Dr. Wong",
   "canary-cove-alpha": "Canary Cove",

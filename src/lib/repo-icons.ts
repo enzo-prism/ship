@@ -1,7 +1,6 @@
 const REPO_EMOJI_MAP: Record<string, string> = {
   "age-boldly-vibrantly": "💚",
   "exquisite-dentistry": "🦷",
-  "prism-website": "💎",
   "pti": "💼",
   "leadership-retreat": "🌸",
   "canary-foundation": "💛",
