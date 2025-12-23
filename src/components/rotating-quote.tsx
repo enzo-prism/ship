@@ -13,6 +13,42 @@ type Quote = {
 
 const QUOTES: Quote[] = [
   {
+    text: "You have power over your mind - not outside events. Realize this, and you will find strength.",
+    author: "Marcus Aurelius",
+  },
+  {
+    text: "Knowing others is intelligence; knowing yourself is true wisdom.",
+    author: "Lao Tzu",
+  },
+  {
+    text: "Where there is ruin, there is hope for a treasure.",
+    author: "Rumi",
+  },
+  {
+    text: "It's not what happens to you, but how you react to it that matters.",
+    author: "Epictetus",
+  },
+  {
+    text: "We suffer more often in imagination than in reality.",
+    author: "Seneca",
+  },
+  {
+    text: "In the middle of difficulty lies opportunity.",
+    author: "Albert Einstein",
+  },
+  {
+    text: "Wherever you go, go with all your heart.",
+    author: "Confucius",
+  },
+  {
+    text: "Act as if what you do makes a difference. It does.",
+    author: "William James",
+  },
+  {
+    text: "In the depth of winter, I finally learned that within me there lay an invincible summer.",
+    author: "Albert Camus",
+  },
+  {
     text: "Success is nothing more than a few simple disciplines, practiced every day.",
     author: "Jim Rohn",
   },
