@@ -13,6 +13,46 @@ type Quote = {
 
 const QUOTES: Quote[] = [
   {
+    text: "Discipline equals freedom.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Good.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Extreme ownership.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "No bad teams, only bad leaders.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Check your ego.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Get after it.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Prioritize and execute.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Cover and move.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Leadership is influence.",
+    author: "Jocko Willink",
+  },
+  {
+    text: "Detach.",
+    author: "Jocko Willink",
+  },
+  {
     text: "You have power over your mind - not outside events. Realize this, and you will find strength.",
     author: "Marcus Aurelius",
   },
@@ -439,6 +479,26 @@ const QUOTES: Quote[] = [
   {
     text: "Success is rented, not owned. And rent is due every day.",
     author: "Rory Vaden",
+  },
+  {
+    text: "You'd be amazed how far a person can get when they simply refuse to fold under pressure.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Questioning whether the goal is worth the suffering is just one of the many stops on the way to achieving it.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Your life will get better the moment you stop waiting for it to get better and force yourself to get better.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "Losers change their goals because they're too lazy to change themselves.",
+    author: "Alex Hormozi",
+  },
+  {
+    text: "There are no perfect businesses. And waiting longer to start just delays how long it takes you to figure that out.",
+    author: "Alex Hormozi",
   },
   {
     text: "If it was easy, everyone would do it.",
