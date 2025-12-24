@@ -1,4 +1,4 @@
-const REPO_EMOJI_MAP: Record<string, string> = {
+const REPO_EMOJI_MAP: Record<string, string | null> = {
   "age-boldly-vibrantly": "💚",
   "exquisite-dentistry": "🦷",
   "pti": "💼",
@@ -17,9 +17,12 @@ const REPO_EMOJI_MAP: Record<string, string> = {
   "ambergris-support-spark": "☀️",
   "olympicbootworks-retail": "🎿",
   "grace-dental": "🦷",
+  "density": null,
 };
 
 export function emojiForRepo(repo: string) {
   const slug = repo.split("/").at(-1)?.toLowerCase() ?? repo.toLowerCase();
-  return REPO_EMOJI_MAP[slug] ?? "📁";
+  const emoji = REPO_EMOJI_MAP[slug];
+  if (emoji === null) return null;
+  return emoji ?? "📁";
 }

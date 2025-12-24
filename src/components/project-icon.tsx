@@ -12,6 +12,7 @@ type ProjectIconProps = {
 
 export function ProjectIcon({ repo, className }: ProjectIconProps) {
   const emoji = emojiForRepo(repo);
+  if (!emoji) return null;
   return (
     <span
       aria-hidden="true"
