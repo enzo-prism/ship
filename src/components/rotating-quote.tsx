@@ -253,10 +253,6 @@ const QUOTES: Quote[] = [
     author: "Eliud Kipchoge",
   },
   {
-    text: "You don't get what you wish for. You get what you work for.",
-    author: "Tom Brady",
-  },
-  {
     text: "Pain is temporary. Pride is forever.",
     author: "Evander Holyfield",
   },
@@ -587,10 +583,6 @@ const QUOTES: Quote[] = [
   {
     text: "Everything negative - pressure, challenges - is an opportunity.",
     author: "Kobe Bryant",
-  },
-  {
-    text: "To be successful, you have to be selfish.",
-    author: "Tom Brady",
   },
   {
     text: "I don't like to lose - at anything.",
