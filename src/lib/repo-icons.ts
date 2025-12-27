@@ -18,6 +18,7 @@ const REPO_EMOJI_MAP: Record<string, string | null> = {
   "olympicbootworks-retail": "🎿",
   "grace-dental": "🦷",
   "density": null,
+  "yt-keywords": null,
 };
 
 export function emojiForRepo(repo: string) {
